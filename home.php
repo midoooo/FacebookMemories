@@ -71,17 +71,31 @@ function getFromFB($args)
     return $graphObject;
 }
 
-    $request = new FacebookRequest($sess, 'GET', '/me');
-    $response = $request->execute();
-    $graph = $response->getGraphObject(GraphUser::className());
-    $name= $graph->getName();
-    echo "hi {$name} <br/><br/><br/>";
-    $graphObject=getFromFB('/me?fields=cover,picture.width(800)');
-    //var_dump($graphObject);
-    $cover_pic=$graphObject->getProperty('cover')->getProperty('source');
-    $profile_pic=$graphObject->getProperty('picture')->getProperty('url');
-    echo $cover_pic."<br/>";
-    echo $profile_pic."<br/>";
+$request = new FacebookRequest($sess, 'GET', '/me');
+$response = $request->execute();
+$graph = $response->getGraphObject(GraphUser::className());
+$name= $graph->getName();
+echo "hi {$name} <br/><br/><br/>";
+$graphObject=getFromFB('/me?fields=cover,picture.width(800)');
+//var_dump($graphObject);
+$cover_pic=$graphObject->getProperty('cover')->getProperty('source');
+$profile_pic=$graphObject->getProperty('picture')->getProperty('url');
+echo $cover_pic."<br/>";
+echo $profile_pic."<br/>";
+
+//getting album details post here
+$graphObject=getFromFB('/me/albums?fields=id,name,cover_photo');
+$data=$graphObject->getProperty('data');
+$arr=$data->asArray();
+echo "<br/>";
+foreach ($arr as $row) {
+    echo $row->id . "<br/>";
+    echo $row->name . "<br/>";
+    $coverget="/".$row->cover_photo;
+    $graphObject=getFromFB($coverget);
+    echo $graphObject->getProperty('source');
+    echo "</br></br>";
+}
 
 ?>
     </pre>
