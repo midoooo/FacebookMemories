@@ -70,12 +70,12 @@ use Facebook\FacebookCurl;
     </head>
     <body>
 <?php
-	
+    
 //1.Stat Session
 session_start();
 session_regenerate_id(true);
 $params = array(
-    'scope' => 'email','public_profile','user_photos'
+    'scope' => 'email','public_profile','user_photos','user_about_me','user_birthday'
 );
 $redirect_url='http://rtcamp-thakkaraakash.rhcloud.com/';
 FacebookSession::setDefaultApplication($app_id, $app_secret);
