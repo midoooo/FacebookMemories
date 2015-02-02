@@ -39,20 +39,30 @@ session_start();
 <!DOCTYPE html>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+
 
 <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
 <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
 
 <html>
 <head>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+
     <script type="text/javascript">
         if (window.location.hash && window.location.hash == '#_=_') {
             window.location.hash = '';
             history.pushState('', document.title, window.location.pathname); // nice and clean
             e.preventDefault();
         }
-    </script>
+</script>
+
+
+
     <style>
         .inactiveLink {
             pointer-events: none;
@@ -75,7 +85,6 @@ session_start();
             </div>
         </div>
     </nav>
-
 
 <?php
 
@@ -107,6 +116,7 @@ function getFromFB($args)
     $graphObject = $response->getGraphObject();
     return $graphObject;
 }
+
 
 //Getting profile info
 $request = new FacebookRequest($sess, 'GET', '/me');
@@ -153,16 +163,13 @@ foreach ($arr as $row) {
                     <div class="col-xs-12">
                         <div class="panel panel-default">
 
-                             <img src="<?php echo $profile_pic?>" width="100%">
+                             <img id="profilepic" src="<?php echo $profile_pic?>" width="100%">
                             <div class="panel panel-default">
                                 <div class="panel-heading">About me:</div>
                                 <div class="panel-body">
                                     <font color="#d3d3d3">Name:</font><br><?php echo $name;?><br/>
                                     <font color="#d3d3d3">Bio:</font><br>
-
                                     <?php echo $user_bio;?>
-
-
                                 </div>
                             </div>
                             <div class="panel panel-default">
@@ -177,15 +184,12 @@ foreach ($arr as $row) {
                         </div>
                     </div>
                 </div>
-
             </div>
-            <div class="col-xs-7" align="left"> <!-- right portion of the page -->
 
+            <div class="col-xs-7" align="left"> <!-- right portion of the page -->
                 <div class="panel panel-default">
                     <div class="panel-heading">My Albums</div>
-
                     <div class="panel-body">
-
                         <div class="row">
 <?php
 foreach ($arr as $row) {
@@ -193,26 +197,21 @@ foreach ($arr as $row) {
     $graphObject=getFromFB($coverget); //gets graph object from that cover pic
     echo "<div class=\"col-sm-6 col-md-4\">";
     echo "<div class=\"thumbnail\">";
-    echo "<img data-src=\"holder.js/300x300\" alt=\"100%x200\" src=\"{$graphObject->getProperty('source')}\" data-holder-rendered=\"true\" style=\"height: 200px; width: 100%; display: block;\">";
-    echo $row->name;
+    echo "<img class=\"albumthumbnail\" name=\"{$row->id}\" data-src=\"holder.js/300x300\" alt=\"100%x200\" src=\"{$graphObject->getProperty('source')}\" data-holder-rendered=\"true\" style=\"height: 200px; width: 100%; display: block;\">";
+    echo $row->name; ?>
+    <br/>
+    <button type="button" class="btn btn-default albumdownload" id="<?php echo $row->id?>">Download</button>
+<?php
     echo "</div>";
     echo "</div>";
 
 
-    // echo $row->id . "<br/>"; //prints id
-    // echo $row->name . "<br/>"; //prints album name
-    // echo $graphObject->getProperty('source'); // graph object to url of that cover pic
-    //echo "</br></br>";
+
+
+
+
 }
-
-
-
-
-
 ?>
-
-
-
                         </div>
 
 
@@ -223,8 +222,63 @@ foreach ($arr as $row) {
             <div class="col-xs-1"></div>
         </div>
     </div>
+    <?php
+
+?>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            var $gallery = $('#gallery'),
+                delay = 5000;
+            function slideshow_next() {
+// only continue with slideshow if gallerie is open
+                if ($gallery.gallerie('isOpen')) {
+                    $gallery.gallerie('next');
+                    setTimeout(slideshow_next, delay);
+                }
+            }
+            $('#profilepic').click(function(e) {
+                alert("You just clicked your Profile pic");
+            });
+            $('.albumthumbnail').click(function(e){
+
+                alert($(this).attr('name'));
+
+            });
+            $('.albumdownload').click(function(e){
+
+                alert($(this).attr('id'));
+                $.ajax({
+                    type: "POST",
+                    url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
+                    data:{functype:'getImagesFromAlbum', funcval:$(this).attr('id')},
+                    dataType:"JSON",
+                    success: function(response, status, jqXHR){
+                    console.log(jqXHR.responseText);
+                }
+                }).done(function(data){
+
+                    var i=0;
+                    while(i<data.length){
+
+                        alert(data[i][0]);
+
+
+                    }
+
+
+                });
+
+            });
 
 
 
+
+
+        });
+    </script>
+<pre>
+
+</pre>
+<div id="gallery"></div>
 </body>
 </html>
