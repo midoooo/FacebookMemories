@@ -67,24 +67,121 @@ function getFromFB($args)
 }
 
 
-if(isset($_POST['functype']) && isset($_POST['funcval'])){
-    if($_POST['functype']=='getImagesFromAlbum'){
 
-        $reqstring="/".$_POST['funcval']."/photos";
+function getImageListFromAlbumId($albumid){
+    $reqstring="/".$albumid."/photos";
+    $graphObject = getFromFB($reqstring);
+    $data=$graphObject->getProperty('data');
+    $arr=$data->asArray();
 
-        $graphObject = getFromFB($reqstring);
-        $data=$graphObject->getProperty('data');
-        $arr=$data->asArray();
+    $outputarray=array();
+    $initial=0;
+    foreach( $arr as $row ) {
+        //$outputarray[$initial][0]=$row->images[0]->source;
+        //$outputarray[$initial][1]= $row->name;
+        $outputarray[$initial]=$row->images[0]->source;
+        $initial++;
+    }
+    return $outputarray;
+}
+function createDirFromImages($albumid){
+    $imagelist=getImageListFromAlbumId($albumid);
+    mkdir("DownloadFiles");
+    rmdir("DownloadFiles/".$albumid);
+    mkdir("DownloadFiles/".$albumid);
+    $i=0;
+    foreach($imagelist as $img){
+        $file = basename($img, ".jpg");
+        copy($img,"DownloadFiles/".$albumid."/".$albumid.$i.".jpg");
+        $i++;
+    }
 
-        $outputarray=array();
-        $initial=0;
-        foreach($arr as $row){
-            $outputarray[$initial][0]=$row->images[0]->source;
-            $outputarray[$initial][1]= $row->name;
-            $initial++;
+
+    return $imagelist;
+
+}
+
+function Zip($source, $destination, $include_dir = false)
+{
+    if (!extension_loaded('zip') || !file_exists($source)) {
+        return false;
+    }
+    if (file_exists($destination)) {
+        unlink ($destination);
+    }
+    $zip = new ZipArchive();
+    if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
+        return false;
+    }
+    $source = str_replace('\\', '/', realpath($source));
+    if (is_dir($source) === true) {
+        $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);
+        if ($include_dir) {
+            $arr = explode("/",$source);
+            $maindir = $arr[count($arr)- 1];
+            $source = "";
+            for ($i=0; $i < count($arr) - 1; $i++) {
+                $source .= '/' . $arr[$i];
+            }
+            $source = substr($source, 1);
+            $zip->addEmptyDir($maindir);
         }
+        foreach ($files as $file) {
+            $file = str_replace('\\', '/', $file);
+            if( in_array(substr($file, strrpos($file, '/')+1), array('.', '..')) )
+                continue;
+            $file = realpath($file);
+            if (is_dir($file) === true) {
+                $zip->addEmptyDir(str_replace($source . '/', '', $file . '/'));
+            }
+            else if (is_file($file) === true) {
+                $zip->addFromString(str_replace($source . '/', '', $file), file_get_contents($file));
+            }
+        }
+    }
+    else if (is_file($source) === true) {
+        $zip->addFromString(basename($source), file_get_contents($source));
+    }
+    return $zip->close();
+}
+
+
+
+function createZipFromDirs($dirs){
+
+    if(file_exists("DownloadFiles/".$_SESSION['userid'].".zip")){
+        $counter=2;
+        while(file_exists("DownloadFiles/".$_SESSION['userid'].$counter.".zip")){
+            $counter++;
+        }
+        Zip("DownloadFiles/".$dirs,"DownloadFiles/".$_SESSION['userid'].$counter.".zip",true);
+        if(file_exists("DownloadFiles/".$_SESSION['userid'].$counter.".zip")){
+            return $counter;
+        }
+        else{
+            return 0;
+        }
+
+
+
+    }
+    else{
+        Zip("DownloadFiles/".$dirs,"DownloadFiles/".$_SESSION['userid'].".zip",true);
+        return file_exists("DownloadFiles/".$_SESSION['userid'].".zip");
+    }
+
+}
+
+
+if(isset($_POST['functype']) && isset($_POST['funcval'])){
+    if($_POST['functype']=='downloadImagesFromAlbum'){
+
+        $outputarray=createDirFromImages($_POST['funcval']);
+        $isCreated=createZipFromDirs($_POST['funcval']);
         //var_dump($graphObject);
-        echo json_encode($outputarray);
+        echo $isCreated;
+
+
     }
 
 }

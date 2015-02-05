@@ -1,3 +1,4 @@
+<!doctype html>
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 'On');
@@ -39,6 +40,8 @@ session_start();
 <!DOCTYPE html>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
 
 
 
@@ -50,6 +53,8 @@ session_start();
 <head>
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
 
 
 
@@ -124,6 +129,7 @@ $response = $request->execute();
 $graph = $response->getGraphObject(GraphUser::className());
 $name= $graph->getName();
 $user_id=$graph->getId();
+$_SESSION['userid']=$user_id;
 $user_bio=$graph->getProperty('bio');
 $user_bday=$graph->getProperty('birthday');
 $user_email=$graph->getProperty('email');
@@ -227,15 +233,19 @@ foreach ($arr as $row) {
 ?>
     <script type="text/javascript">
         $(document).ready(function() {
-            var $gallery = $('#gallery'),
-                delay = 5000;
-            function slideshow_next() {
-// only continue with slideshow if gallerie is open
-                if ($gallery.gallerie('isOpen')) {
-                    $gallery.gallerie('next');
-                    setTimeout(slideshow_next, delay);
-                }
-            }
+
+            $('#dialogue').dialog({
+                autoOpen: false,
+                title: 'Album Download',
+                buttons: [
+                    {
+                        text: "Ok",
+                        click: function() {
+                            $( this ).dialog( "close" );
+                        }
+                    }
+                ]
+            });
             $('#profilepic').click(function(e) {
                 alert("You just clicked your Profile pic");
             });
@@ -246,23 +256,33 @@ foreach ($arr as $row) {
             });
             $('.albumdownload').click(function(e){
 
+
+                $( '#dialogue' ).dialog('open');
                 alert($(this).attr('id'));
                 $.ajax({
                     type: "POST",
                     url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
-                    data:{functype:'getImagesFromAlbum', funcval:$(this).attr('id')},
+                    data:{functype:'downloadImagesFromAlbum', funcval:$(this).attr('id')},
                     dataType:"JSON",
                     success: function(response, status, jqXHR){
                     console.log(jqXHR.responseText);
                 }
                 }).done(function(data){
+                    if(data==1){
+                        $( '#dialogue' ).dialog('close');
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>.zip\">Click here to download!</a>"
+                        $( '#dialogue' ).dialog('open');
 
-                    var i=0;
-                    while(i<data.length){
-
-                        alert(data[i][0]);
-
-
+                    }
+                    else if(data==0){
+                        $( '#dialogue' ).dialog('close');
+                        document.getElementById('dialogue').innerHTML="Something went wrong! We are trying to fix it."
+                        $( '#dialogue' ).dialog('open');
+                    }
+                    else{
+                        $( '#dialogue' ).dialog('close');
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                        $( '#dialogue' ).dialog('open');
                     }
 
 
@@ -279,6 +299,12 @@ foreach ($arr as $row) {
 <pre>
 
 </pre>
-<div id="gallery"></div>
+    <div id="dialogue" title="test dialog" hidden="true">
+        <p><img src="images/loading32x32.gif">
+        
+        Please wait, creating ZIP file!</p>
+    </div>
+
 </body>
+
 </html>
