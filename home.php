@@ -194,7 +194,9 @@ foreach ($arr as $row) {
 
             <div class="col-xs-7" align="left"> <!-- right portion of the page -->
                 <div class="panel panel-default">
-                    <div class="panel-heading">My Albums</div>
+                    <div class="panel-heading">My Albums<input type="button" hidden="true" class="pull-right downloadSelected"  value="Download Selected Albums" name="downloadSelected" id="downloadSelected">
+                    <input type="button" class="pull-right downloadSelected" value="Download All Albums" name="downloadAll" id="downloadAll">
+                    </div>
                     <div class="panel-body">
                         <div class="row">
 <?php
@@ -204,17 +206,13 @@ foreach ($arr as $row) {
     echo "<div class=\"col-sm-6 col-md-4\">";
     echo "<div class=\"thumbnail\">";
     echo "<img class=\"albumthumbnail\" name=\"{$row->id}\" data-src=\"holder.js/300x300\" alt=\"100%x200\" src=\"{$graphObject->getProperty('source')}\" data-holder-rendered=\"true\" style=\"height: 200px; width: 100%; display: block;\">";
+    echo "<input type=\"checkbox\" class=\"selectCheckBox\" name=\"{$row->id}\"> Select<br/>";
     echo $row->name; ?>
     <br/>
     <button type="button" class="btn btn-default albumdownload" id="<?php echo $row->id?>">Download</button>
 <?php
     echo "</div>";
     echo "</div>";
-
-
-
-
-
 
 }
 ?>
@@ -234,6 +232,8 @@ foreach ($arr as $row) {
     <script type="text/javascript">
         $(document).ready(function() {
 
+
+
             $('#dialogue').dialog({
                 autoOpen: false,
                 title: 'Album Download',
@@ -249,6 +249,77 @@ foreach ($arr as $row) {
             $('#profilepic').click(function(e) {
                 alert("You just clicked your Profile pic");
             });
+            $('.selectCheckBox').click(function(e){
+               if($(this).is(':checked')){
+                    $('#downloadSelected').prop('hidden',false);
+               }
+                else{
+                   var k=false;
+                   $('.selectCheckBox').each(function(i, obj) {
+                       if($(this).is(':checked')){
+                            k=true;
+                           return;
+                       }
+                   });
+                   if(!k){
+                       $('#downloadSelected').prop('hidden',true);
+                   }
+               }
+            });
+            $('.downloadSelected').click(function(e){
+                var albumids=new Array();
+                var k=0;
+
+                if($(this).prop('name')=='downloadAll'){
+                    $('.selectCheckBox').each(function(i, obj) {
+                            albumids[k]=$(this).prop('name');
+                            k++;
+                    });
+                }
+                else{
+                    $('.selectCheckBox').each(function(i, obj) {
+                        if($(this).is(':checked')){
+                            albumids[k]=$(this).prop('name');
+                            k++;
+                        }
+                    });
+                }
+
+                if(k>0){
+                    document.getElementById('dialogue').innerHTML="\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>"
+                    $( '#dialogue' ).dialog('open');
+                    $.ajax({
+                        type: "POST",
+                        url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
+                        data:{functype:'downloadMultipleAlbums', funcval:albumids},
+                        dataType:"JSON",
+                        success: function(response, status, jqXHR){
+                            console.log(jqXHR.responseText);
+                        }
+                    }).done(function(data){
+                        if(data==1){
+                            $( '#dialogue' ).dialog('close');
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>.zip\">Click here to download!</a>"
+                            $( '#dialogue' ).dialog('open');
+
+                        }
+                        else if(data==0 || data==null){
+                            $( '#dialogue' ).dialog('close');
+                            document.getElementById('dialogue').innerHTML="Something went wrong! We are trying to fix it."
+                            $( '#dialogue' ).dialog('open');
+                        }
+                        else{
+                            $( '#dialogue' ).dialog('close');
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                            $( '#dialogue' ).dialog('open');
+                        }
+
+                    });
+
+
+                }
+            });
+
             $('.albumthumbnail').click(function(e){
 
                 alert($(this).attr('name'));
@@ -256,9 +327,8 @@ foreach ($arr as $row) {
             });
             $('.albumdownload').click(function(e){
 
-
+                document.getElementById('dialogue').innerHTML="\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>"
                 $( '#dialogue' ).dialog('open');
-                alert($(this).attr('id'));
                 $.ajax({
                     type: "POST",
                     url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
@@ -274,7 +344,7 @@ foreach ($arr as $row) {
                         $( '#dialogue' ).dialog('open');
 
                     }
-                    else if(data==0){
+                    else if(data==0 || data==null){
                         $( '#dialogue' ).dialog('close');
                         document.getElementById('dialogue').innerHTML="Something went wrong! We are trying to fix it."
                         $( '#dialogue' ).dialog('open');
