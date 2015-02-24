@@ -186,6 +186,13 @@ foreach ($arr as $row) {
                                     <font color="#d3d3d3">Gender:</font><br><?php echo $graph->getProperty('gender');?><br/>
                                 </div>
                             </div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">Google+/Picasa Connectivity</div>
+                                <div class="panel-body" name="picasaConnectivity" id="picasaConnectivity">
+                                    <img src="images/loading32x32.gif">
+
+                                </div>
+                            </div>
 
                         </div>
                     </div>
@@ -196,9 +203,12 @@ foreach ($arr as $row) {
                 <div class="panel panel-default">
                     <div class="panel-heading">My Albums<input type="button" hidden="true" class="pull-right downloadSelected"  value="Download Selected Albums" name="downloadSelected" id="downloadSelected">
                     <input type="button" class="pull-right downloadSelected" value="Download All Albums" name="downloadAll" id="downloadAll">
+                        <input type="button" hidden="true" class="pull-right moveSelected"  value="Move Selected Albums to Google+" name="moveSelected" id="moveSelected">
+                        <input type="button" class="pull-right moveSelected" value="Move All Albums to Google+" name="moveAll" id="moveAll">
                     </div>
                     <div class="panel-body">
                         <div class="row">
+                            <center>
 <?php
 foreach ($arr as $row) {
     $coverget="/".$row->cover_photo; //gets cover pic id
@@ -210,12 +220,15 @@ foreach ($arr as $row) {
     echo $row->name; ?>
     <br/>
     <button type="button" class="btn btn-default albumdownload" id="<?php echo $row->id?>">Download</button>
-<?php
+    <button type="button" class="btn btn-default movePicasa" id="<?php echo $row->id?>">Move to Google+</button>
+
+    <?php
     echo "</div>";
     echo "</div>";
 
 }
 ?>
+                            </center>
                         </div>
 
 
@@ -234,9 +247,69 @@ foreach ($arr as $row) {
 
 
 
+            $('.movePicasa').click(function(e){
+                $( '#dialogue' ).dialog('close');
+                document.getElementById('dialogue').innerHTML="\<p><img src=\"images/loading32x32.gif\"\> Please wait, Uploading to Google+/Picasa.!</p>"
+                $( '#dialogue' ).dialog('open');
+                var ids=new Array();
+                ids[0]=$(this).attr('id');
+                $.ajax({
+                    type: "POST",
+                    url: "http://rtcamp-thakkaraakash.rhcloud.com/picasaapi.php",
+                    data:{func:'moveAlbumToPicasa', funcval:ids},
+                    dataType:"JSON",
+                    success: function(response, status, jqXHR){
+                        console.log(jqXHR.responseText);
+                    }
+                }).done(function(data){
+                    if(data==1){
+                        $( '#dialogue' ).dialog('close');
+                        document.getElementById('dialogue').innerHTML="Album Uploaded to Google+/Picasa.";
+                        $( '#dialogue' ).dialog('open');
+                    }
+                    else {
+                        $( '#dialogue' ).dialog('close');
+                        document.getElementById('dialogue').innerHTML="Something went wrong! We are trying to fix it."
+                        $( '#dialogue' ).dialog('open');
+                    }
+                });
+            });
+
+
+            $.ajax({
+                type: "POST",
+                url: "http://rtcamp-thakkaraakash.rhcloud.com/picasaapi.php",
+                data:{func:'getPicasaStatus'},
+                dataType:"JSON",
+                success: function(response, status, jqXHR){
+                    console.log(jqXHR.responseText);
+                }
+            }).done(function(data){
+                if(data==1){
+                    document.getElementById('picasaConnectivity').innerHTML="";
+                    document.getElementById('picasaConnectivity').innerHTML="<h4 style=\"color:green\"> Connected </h4> ";
+                }
+                else{
+                    $.ajax({
+                        type: "POST",
+                        url: "http://rtcamp-thakkaraakash.rhcloud.com/picasaapi.php",
+                        data:{func:'getPicasaUrl'},
+                        dataType:"TEXT",
+                        success: function(response, status, jqXHR){
+                            console.log(jqXHR.responseText);
+                        }
+                    }).done(function(data){
+                        document.getElementById('picasaConnectivity').innerHTML="";
+                        document.getElementById('picasaConnectivity').innerHTML="<a href="+data+">Click to connect!</a>";
+                    });
+
+                }
+            });
+
+
             $('#dialogue').dialog({
                 autoOpen: false,
-                title: 'Album Download',
+                title: 'Status',
                 buttons: [
                     {
                         text: "Ok",
@@ -252,6 +325,9 @@ foreach ($arr as $row) {
             $('.selectCheckBox').click(function(e){
                if($(this).is(':checked')){
                     $('#downloadSelected').prop('hidden',false);
+                   $('#moveSelected').prop('hidden',false);
+                   $('#downloadAll').prop('hidden',true);
+                   $('#moveAll').prop('hidden',true);
                }
                 else{
                    var k=false;
@@ -263,6 +339,9 @@ foreach ($arr as $row) {
                    });
                    if(!k){
                        $('#downloadSelected').prop('hidden',true);
+                       $('#moveSelected').prop('hidden',true);
+                       $('#downloadAll').prop('hidden',false);
+                       $('#moveAll').prop('hidden',false);
                    }
                }
             });
@@ -286,6 +365,7 @@ foreach ($arr as $row) {
                 }
 
                 if(k>0){
+                    $( '#dialogue' ).dialog('close');
                     document.getElementById('dialogue').innerHTML="\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>"
                     $( '#dialogue' ).dialog('open');
                     $.ajax({
@@ -320,9 +400,60 @@ foreach ($arr as $row) {
                 }
             });
 
+            $('.moveSelected').click(function(e){
+
+                var albumids=new Array();
+                var k=0;
+
+                if($(this).prop('name')=='moveAll'){
+                    $('.selectCheckBox').each(function(i, obj) {
+                        albumids[k]=$(this).prop('name');
+                        k++;
+                    });
+                } else{
+                    $('.selectCheckBox').each(function(i, obj) {
+                        if($(this).is(':checked')){
+                            albumids[k]=$(this).prop('name');
+                            k++;
+                        }
+                    });
+                }
+                if(k>0){
+
+                    $( '#dialogue' ).dialog('close');
+                    document.getElementById('dialogue').innerHTML="\<p><img src=\"images/loading32x32.gif\"\> Please wait, Uploading to Google+/Picasa.!</p>"
+                    $( '#dialogue' ).dialog('open');
+
+                    $.ajax({
+                        type: "POST",
+                        url: "http://rtcamp-thakkaraakash.rhcloud.com/picasaapi.php",
+                        data:{func:'moveAlbumToPicasa', funcval:albumids},
+                        dataType:"JSON",
+                        success: function(response, status, jqXHR){
+                            console.log(jqXHR.responseText);
+                        }
+                    }).done(function(data){
+                        if(data==1){
+                            $( '#dialogue' ).dialog('close');
+                            document.getElementById('dialogue').innerHTML="Album(s) Uploaded to Google+/Picasa.";
+                            $( '#dialogue' ).dialog('open');
+                        }
+                        else {
+                            $( '#dialogue' ).dialog('close');
+                            document.getElementById('dialogue').innerHTML="Something went wrong! We are trying to fix it."
+                            $( '#dialogue' ).dialog('open');
+                        }
+                    });
+
+                }
+
+
+            });
+
             $('.albumthumbnail').click(function(e){
 
                 alert($(this).attr('name'));
+
 
             });
             $('.albumdownload').click(function(e){

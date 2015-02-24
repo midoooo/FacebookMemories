@@ -70,6 +70,11 @@ function getFromFB($args)
     return $graphObject;
 }
 
+function getAlbumNameFromId($albumid){
+    $reqstring="/".$albumid;
+    $graphObject=getFromFB($reqstring);
+    return $graphObject->getProperty('name');
+}
 
 /**
  * @param String $albumid input album id
@@ -86,13 +91,31 @@ function getImageListFromAlbumId($albumid)
     $outputarray=array();
     $initial=0;
     foreach ( $arr as $row ) {
-        //$outputarray[$initial][0]=$row->images[0]->source;
-        //$outputarray[$initial][1]= $row->name;
         $outputarray[$initial]=$row->images[0]->source;
         $initial++;
     }
     return $outputarray;
 }
+
+
+function getImageAndNameListFromAlbumId($albumid)
+{
+    $reqstring="/".$albumid."/photos";
+    $graphObject = getFromFB($reqstring);
+    $data=$graphObject->getProperty('data');
+    $arr=$data->asArray();
+
+    $outputarray=array();
+    $initial=0;
+    foreach ( $arr as $row ) {
+        $outputarray[$initial][0]=$row->images[0]->source;
+        $outputarray[$initial][1]= $row->name;
+       // $outputarray[$initial]=$row->images[0]->source;
+        $initial++;
+    }
+    return $outputarray;
+}
+
 
 /**
  * @param String $albumid is the album id of which the directory is to be made
@@ -110,7 +133,7 @@ function createDirFromAlbumId($albumid)
         copy($img, "DownloadFiles/".$albumid."/".$albumid.$i.".jpg");
         $i++;
     }
-    return null;
+    return 1;
 }
 
 /**
@@ -278,9 +301,6 @@ if ( isset($_POST['functype']) && isset($_POST['funcval']) ) {
 
     }
 
-} else {
-    header("Location: index.php");
-    exit();
 }
 
 
