@@ -40,10 +40,11 @@ use Facebook\FacebookCurl;
 ?>
 <html>
 <head>
+    <title>Login</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
     <script
         type="text/javascript"
         src="lib/vegas/jquery.vegas.js">
@@ -52,6 +53,25 @@ use Facebook\FacebookCurl;
     <script type="text/javascript" src="lib/vegas/jquery.vegas.min.js"></script>
     <style>
         a, a:hover, a:active, a:visited { color: white; }
+        .vertical-center {
+            left: 0;
+            line-height: 200px;
+            margin: auto;
+            margin-top: -100px;
+            position: absolute;
+            top: 48%;
+            width: 100%;
+        }
+        .vertical-center-below{
+            left: 0;
+            line-height: 200px;
+            margin: auto;
+            margin-top: -100px;
+            position: absolute;
+            top: 53%;
+            width: 100%;
+        }
+
     </style>
     <script>
         $.vegas('slideshow', {
@@ -99,20 +119,16 @@ if (isset($sess)) {
 }
 
 ?>
-<div class="row">
-    <div class="col-md-3 col-md-offset-3">
-    </div>
-    <div class="col-md-3 col-md-offset-8"><font color="white" face="Verdana" size="5"><center>facebook<b>memories</b></center></font></div>
+<div class="row vertical-center">
+    <font color="white" face="Verdana" size="10"><center>facebook<b>memories</b></center></font>
 </div>
-<div class="row">
-    <div class="col-md-3 col-md-offset-3">
-    </div>
-    <div class="col-md-3 col-md-offset-8">
-        <?php
-        if (!isset($sess)) {
-            echo '<center><a href='.$helper->getLoginUrl($params).'><U><I>Login with facebook</I></U></a></center></center>';
-        }
-        ?>
-    </div>
+
+<div class="row vertical-center-below">
+    <?php
+    if (!isset($sess)) {
+        echo '<center><a href='.$helper->getLoginUrl($params).'><U><I>Login with facebook</I></U></a></center></center>';
+    }
+    ?>
+</div>
 </body>
 </html>

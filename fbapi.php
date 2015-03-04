@@ -284,7 +284,7 @@ if ( isset($_POST['functype']) && isset($_POST['funcval']) ) {
         }
     }
     //Used to download single albums through AJAX
-    if ( $_POST['functype']=='downloadImagesFromAlbum' ) {
+    if ( $_POST['functype']=='downloadImagesFromAlbum' && isset($_POST['funcval']) ) {
 
         createDirFromAlbumId($_POST['funcval']);
         echo createZipFromDirs($_POST['funcval']);
@@ -292,13 +292,16 @@ if ( isset($_POST['functype']) && isset($_POST['funcval']) ) {
 
     }
     //used to download multiple or all albums through AJAX
-    if ( $_POST['functype']=='downloadMultipleAlbums' ) {
+    if ( $_POST['functype']=='downloadMultipleAlbums' && isset($_POST['funcval'])) {
         $albumids=$_POST['funcval'];
         $dirname=createMultipleAlbumDirs($albumids);
 
         $isCreated=createZipFromDirs($dirname);
         echo $isCreated;
 
+    }
+    if ($_POST['functype']=='getImagesAndNamesFromAlbumid' && isset($_POST['funcval'])){
+        echo json_encode(getImageAndNameListFromAlbumId($_POST['funcval']));
     }
 
 }
