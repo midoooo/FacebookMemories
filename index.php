@@ -36,8 +36,35 @@ use Facebook\FacebookHttpable;
 use Facebook\FacebookCurlHttpClient;
 use Facebook\FacebookCurl;
 
-/*PROCESS*/
+//1.Stat Session
+session_start();
+session_regenerate_id(true);
+$params = array(
+    'scope' => 'email','public_profile','user_photos','user_about_me','user_birthday'
+);
+$redirect_url='http://rtcamp-thakkaraakash.rhcloud.com/';
+FacebookSession::setDefaultApplication($app_id, $app_secret);
+$helper = new FacebookRedirectLoginHelper($redirect_url);
+try{
+    $sess = $helper->getSessionFromRedirect();
+}catch(Exception $e){
+}
+if (isset($_SESSION['token'])) {
+    $sess=new FacebookSession($_SESSION['token']);
+    try {
+        $sess->validate($app_id, $app_secret);
+    } catch(FacebookAuthorizationException $e){
+        echo "Unauthorized";
+    }
+}
+if (isset($sess)) {
+    $_SESSION['token']=$sess->getAccessToken();
+    header("Location: home.php");
+    exit();
+}
+
 ?>
+
 <html>
 <head>
     <title>Login</title>
@@ -79,7 +106,7 @@ use Facebook\FacebookCurl;
                 { src:'images/5.png', fade:5000, valign:'5%' },
                 { src:'images/1.jpg', fade:5000 },
                 { src:'images/2.png', fade:5000, valign:'5%' },
-                { src:'images/3.jpg', fade:5000, valign:'5%' },
+                { src:'images/3.png', fade:5000, valign:'5%' },
                 { src:'images/4.png', fade:5000, valign:'5%' },
                 { src:'images/6.png', fade:2000 }
             ]
@@ -89,36 +116,7 @@ use Facebook\FacebookCurl;
     </script>
 </head>
 <body>
-<?php
 
-//1.Stat Session
-session_start();
-session_regenerate_id(true);
-$params = array(
-    'scope' => 'email','public_profile','user_photos','user_about_me','user_birthday'
-);
-$redirect_url='http://rtcamp-thakkaraakash.rhcloud.com/';
-FacebookSession::setDefaultApplication($app_id, $app_secret);
-$helper = new FacebookRedirectLoginHelper($redirect_url);
-try{
-    $sess = $helper->getSessionFromRedirect();
-}catch(Exception $e){
-}
-if (isset($_SESSION['token'])) {
-    $sess=new FacebookSession($_SESSION['token']);
-    try {
-        $sess->validate($app_id, $app_secret);
-    } catch(FacebookAuthorizationException $e){
-        echo "Unauthorized";
-    }
-}
-if (isset($sess)) {
-    $_SESSION['token']=$sess->getAccessToken();
-    header("Location: home.php");
-    exit();
-}
-
-?>
 <div class="row vertical-center">
     <font color="white" face="Verdana" size="10"><center>facebook<b>memories</b></center></font>
 </div>

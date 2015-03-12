@@ -1,6 +1,6 @@
 <!doctype html>
 <?php
-ini_set('display_errors', 'On');
+//ini_set('display_errors', 'On');
 /* INCLUSION OF LIBRARY FILEs*/
 require_once 'fbcredentials.php';
 require_once 'lib/Facebook/FacebookSession.php';
@@ -34,6 +34,8 @@ use Facebook\FacebookHttpable;
 use Facebook\FacebookCurlHttpClient;
 use Facebook\FacebookCurl;
 session_start();
+define('downloadDir', 'DownloadFiles');
+
 
 ?>
 <!DOCTYPE html>
@@ -101,7 +103,6 @@ if ( isset($_SESSION['token']) ) {
 
     try{
         $sess->validate($app_id, $app_secret);
-
     }catch(FacebookAuthorizationException $e){
             header("Location: index.php");
             exit();
@@ -498,7 +499,7 @@ foreach ($arr as $row) {
                     }).done(function(data){
                         if(data==1){
                             $( '#dialogue' ).dialog('close');
-                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>.zip\">Click here to download!</a>"
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                             $( '#dialogue' ).dialog('open');
 
                         }
@@ -509,7 +510,7 @@ foreach ($arr as $row) {
                         }
                         else{
                             $( '#dialogue' ).dialog('close');
-                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
                             $( '#dialogue' ).dialog('open');
                         }
 
@@ -589,7 +590,7 @@ foreach ($arr as $row) {
                 }).done(function(data){
                     if(data==1){
                         $( '#dialogue' ).dialog('close');
-                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>.zip\">Click here to download!</a>"
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                         $( '#dialogue' ).dialog('open');
                     }
                     else if(data==0 || data==null){
@@ -599,7 +600,7 @@ foreach ($arr as $row) {
                     }
                     else{
                         $( '#dialogue' ).dialog('close');
-                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"DownloadFiles/<?php echo $_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
                         $( '#dialogue' ).dialog('open');
                     }
                 });
