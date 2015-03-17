@@ -51,6 +51,24 @@ abstract class Zend_Filter_Compress_CompressAbstract implements Zend_Filter_Comp
     }
 
     /**
+     * Sets all or one option
+     *
+     * @param  array $options
+     * @return Zend_Filter_Compress_Bz2
+     */
+    public function setOptions(array $options)
+    {
+        foreach ($options as $key => $option) {
+            $method = 'set' . $key;
+            if (method_exists($this, $method)) {
+                $this->$method($option);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
      * Returns one or all set options
      *
      * @param string $option (Optional) Option to return
@@ -67,23 +85,5 @@ abstract class Zend_Filter_Compress_CompressAbstract implements Zend_Filter_Comp
         }
 
         return $this->_options[$option];
-    }
-
-    /**
-     * Sets all or one option
-     *
-     * @param  array $options
-     * @return Zend_Filter_Compress_Bz2
-     */
-    public function setOptions(array $options)
-    {
-        foreach ($options as $key => $option) {
-            $method = 'set' . $key;
-            if (method_exists($this, $method)) {
-                $this->$method($option);
-            }
-        }
-
-        return $this;
     }
 }

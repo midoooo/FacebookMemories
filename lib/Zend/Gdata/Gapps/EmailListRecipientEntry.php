@@ -97,28 +97,6 @@ class Zend_Gdata_Gapps_EmailListRecipientEntry extends Zend_Gdata_Entry
     }
 
     /**
-     * Creates individual Entry objects of the appropriate type and
-     * stores them as members of this entry based upon DOM data.
-     *
-     * @param DOMNode $child The DOMNode to process
-     */
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-
-        switch ($absoluteNodeName) {
-            case $this->lookupNamespace('gd') . ':' . 'who';
-                $who = new Zend_Gdata_Extension_Who();
-                $who->transferFromDOM($child);
-                $this->_who = $who;
-                break;
-            default:
-                parent::takeChildFromDOM($child);
-                break;
-        }
-    }
-
-    /**
      * Get the value of the who property for this object.
      *
      * @see setWho
@@ -141,6 +119,28 @@ class Zend_Gdata_Gapps_EmailListRecipientEntry extends Zend_Gdata_Entry
     {
         $this->_who = $value;
         return $this;
+    }
+
+    /**
+     * Creates individual Entry objects of the appropriate type and
+     * stores them as members of this entry based upon DOM data.
+     *
+     * @param DOMNode $child The DOMNode to process
+     */
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('gd') . ':' . 'who';
+                $who = new Zend_Gdata_Extension_Who();
+                $who->transferFromDOM($child);
+                $this->_who = $who;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
     }
 
 }

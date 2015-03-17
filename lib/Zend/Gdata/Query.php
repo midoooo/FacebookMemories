@@ -78,25 +78,6 @@ class Zend_Gdata_Query
     }
 
     /**
-     * @return string querystring
-     */
-    public function getQueryString()
-    {
-        $queryArray = array();
-        foreach ($this->_params as $name => $value) {
-            if (substr($name, 0, 1) == '_') {
-                continue;
-            }
-            $queryArray[] = urlencode($name) . '=' . urlencode($value);
-        }
-        if (count($queryArray) > 0) {
-            return '?' . implode('&', $queryArray);
-        } else {
-            return '';
-        }
-    }
-
-    /**
      *
      */
     public function resetParameters()
@@ -119,6 +100,40 @@ class Zend_Gdata_Query
         }
         $url .= $this->getQueryString();
         return $url;
+    }
+
+    public function getCategory()
+    {
+        return $this->_category;
+    }
+
+    /**
+     * @param string $value
+     * @return Zend_Gdata_Query Provides a fluent interface
+     */
+    public function setCategory($value)
+    {
+        $this->_category = $value;
+        return $this;
+    }
+
+    /**
+     * @return string querystring
+     */
+    public function getQueryString()
+    {
+        $queryArray = array();
+        foreach ($this->_params as $name => $value) {
+            if (substr($name, 0, 1) == '_') {
+                continue;
+            }
+            $queryArray[] = urlencode($name) . '=' . urlencode($value);
+        }
+        if (count($queryArray) > 0) {
+            return '?' . implode('&', $queryArray);
+        } else {
+            return '';
+        }
     }
 
     /**
@@ -362,6 +377,10 @@ class Zend_Gdata_Query
         }
     }
 
+    /*
+     * @return string id
+     */
+
     /**
      * @return string author
      */
@@ -374,28 +393,9 @@ class Zend_Gdata_Query
         }
     }
 
-    /**
-     * @param string $value
-     * @return Zend_Gdata_Query Provides a fluent interface
-     */
-    public function setCategory($value)
-    {
-        $this->_category = $value;
-        return $this;
-    }
-
-    /*
-     * @return string id
-     */
-    public function getCategory()
-    {
-        return $this->_category;
-    }
-
-
     public function __get($name)
     {
-        $method = 'get'.ucfirst($name);
+        $method = 'get' . ucfirst($name);
         if (method_exists($this, $method)) {
             return call_user_func(array(&$this, $method));
         } else {
@@ -406,7 +406,7 @@ class Zend_Gdata_Query
 
     public function __set($name, $val)
     {
-        $method = 'set'.ucfirst($name);
+        $method = 'set' . ucfirst($name);
         if (method_exists($this, $method)) {
             return call_user_func(array(&$this, $method), $val);
         } else {

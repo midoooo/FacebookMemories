@@ -232,117 +232,10 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
             }
         }
         if ($this->_where != null) {
-           $element->appendChild($this->_where->getDOM(
+            $element->appendChild($this->_where->getDOM(
                 $element->ownerDocument));
         }
         return $element;
-    }
-
-    /**
-     * Creates individual Entry objects of the appropriate type and
-     * stores them in the $_entry array based upon DOM data.
-     *
-     * @param DOMNode $child The DOMNode to process
-     */
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-
-        switch ($absoluteNodeName) {
-        case $this->lookupNamespace('yt') . ':' . 'statistics':
-            $statistics = new Zend_Gdata_YouTube_Extension_Statistics();
-            $statistics->transferFromDOM($child);
-            $this->_statistics = $statistics;
-            break;
-        case $this->lookupNamespace('yt') . ':' . 'racy':
-            $racy = new Zend_Gdata_YouTube_Extension_Racy();
-            $racy->transferFromDOM($child);
-            $this->_racy = $racy;
-            break;
-        case $this->lookupNamespace('yt') . ':' . 'recorded':
-            $recorded = new Zend_Gdata_YouTube_Extension_Recorded();
-            $recorded->transferFromDOM($child);
-            $this->_recorded = $recorded;
-            break;
-        case $this->lookupNamespace('yt') . ':' . 'location':
-            $location = new Zend_Gdata_YouTube_Extension_Location();
-            $location->transferFromDOM($child);
-            $this->_location = $location;
-            break;
-        case $this->lookupNamespace('gd') . ':' . 'rating':
-            $rating = new Zend_Gdata_Extension_Rating();
-            $rating->transferFromDOM($child);
-            $this->_rating = $rating;
-            break;
-        case $this->lookupNamespace('gd') . ':' . 'comments':
-            $comments = new Zend_Gdata_Extension_Comments();
-            $comments->transferFromDOM($child);
-            $this->_comments = $comments;
-            break;
-        case $this->lookupNamespace('yt') . ':' . 'noembed':
-            $noEmbed = new Zend_Gdata_YouTube_Extension_NoEmbed();
-            $noEmbed->transferFromDOM($child);
-            $this->_noEmbed = $noEmbed;
-            break;
-        case $this->lookupNamespace('gd') . ':' . 'feedLink':
-            $feedLink = new Zend_Gdata_Extension_FeedLink();
-            $feedLink->transferFromDOM($child);
-            $this->_feedLink[] = $feedLink;
-            break;
-        case $this->lookupNamespace('georss') . ':' . 'where':
-            $where = new Zend_Gdata_Geo_Extension_GeoRssWhere();
-            $where->transferFromDOM($child);
-            $this->_where = $where;
-            break;
-        case $this->lookupNamespace('atom') . ':' . 'link';
-            $link = new Zend_Gdata_YouTube_Extension_Link();
-            $link->transferFromDOM($child);
-            $this->_link[] = $link;
-            break;
-        case $this->lookupNamespace('app') . ':' . 'control':
-            $control = new Zend_Gdata_YouTube_Extension_Control();
-            $control->transferFromDOM($child);
-            $this->_control = $control;
-            break;
-        default:
-            parent::takeChildFromDOM($child);
-            break;
-        }
-    }
-
-    /**
-     * Sets when the video was recorded.
-     *
-     * @param Zend_Gdata_YouTube_Extension_Recorded $recorded When the video was recorded
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setRecorded($recorded = null)
-    {
-        $this->_recorded = $recorded;
-        return $this;
-    }
-
-    /**
-     * Gets the date that the video was recorded.
-     *
-     * @return Zend_Gdata_YouTube_Extension_Recorded|null
-     */
-    public function getRecorded()
-    {
-        return $this->_recorded;
-    }
-
-    /**
-     * Sets the location information.
-     *
-     * @param Zend_Gdata_YouTube_Extension_Location $location Where the video
-     *        was recorded
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setLocation($location = null)
-    {
-        $this->_location = $location;
-        return $this;
     }
 
     /**
@@ -356,29 +249,16 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
-     * If an instance of Zend_Gdata_YouTube_Extension_NoEmbed is passed in,
-     * the video cannot be embedded.  Otherwise, if null is passsed in, the
-     * video is able to be embedded.
+     * Sets the location information.
      *
-     * @param Zend_Gdata_YouTube_Extension_NoEmbed $noEmbed Whether or not the
-     *          video can be embedded.
+     * @param Zend_Gdata_YouTube_Extension_Location $location Where the video
+     *        was recorded
      * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
      */
-    public function setNoEmbed($noEmbed = null)
+    public function setLocation($location = null)
     {
-        $this->_noEmbed = $noEmbed;
+        $this->_location = $location;
         return $this;
-    }
-
-    /**
-     * If the return value is an instance of
-     * Zend_Gdata_YouTube_Extension_NoEmbed, this video cannot be embedded.
-     *
-     * @return Zend_Gdata_YouTube_Extension_NoEmbed|null Whether or not the video can be embedded
-     */
-    public function getNoEmbed()
-    {
-        return $this->_noEmbed;
     }
 
     /**
@@ -396,44 +276,28 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
-     * Sets the statistics relating to the video.
+     * If the return value is an instance of
+     * Zend_Gdata_YouTube_Extension_NoEmbed, this video cannot be embedded.
      *
-     * @param Zend_Gdata_YouTube_Extension_Statistics $statistics The statistics relating to the video
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     * @return Zend_Gdata_YouTube_Extension_NoEmbed|null Whether or not the video can be embedded
      */
-    public function setStatistics($statistics = null)
+    public function getNoEmbed()
     {
-        $this->_statistics = $statistics;
-        return $this;
+        return $this->_noEmbed;
     }
 
     /**
-     * Returns the statistics relating to the video.
+     * If an instance of Zend_Gdata_YouTube_Extension_NoEmbed is passed in,
+     * the video cannot be embedded.  Otherwise, if null is passsed in, the
+     * video is able to be embedded.
      *
-     * @return Zend_Gdata_YouTube_Extension_Statistics  The statistics relating to the video
-     */
-    public function getStatistics()
-    {
-        return $this->_statistics;
-    }
-
-    /**
-     * Specifies that the video has racy content.
-     *
-     * @param Zend_Gdata_YouTube_Extension_Racy $racy The racy flag object
-     * @throws Zend_Gdata_App_VersionException
+     * @param Zend_Gdata_YouTube_Extension_NoEmbed $noEmbed Whether or not the
+     *          video can be embedded.
      * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
      */
-    public function setRacy($racy = null)
+    public function setNoEmbed($noEmbed = null)
     {
-        if ($this->getMajorProtocolVersion() == 2) {
-            require_once 'Zend/Gdata/App/VersionException.php';
-            throw new Zend_Gdata_App_VersionException(
-                'Calling getRacy() on a YouTube VideoEntry is deprecated ' .
-                'as of version 2 of the API.');
-        }
-
-        $this->_racy = $racy;
+        $this->_noEmbed = $noEmbed;
         return $this;
     }
 
@@ -455,58 +319,22 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
-     * Sets the rating relating to the video.
+     * Specifies that the video has racy content.
      *
-     * @param Zend_Gdata_Extension_Rating $rating The rating relating to the video
+     * @param Zend_Gdata_YouTube_Extension_Racy $racy The racy flag object
+     * @throws Zend_Gdata_App_VersionException
      * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
      */
-    public function setRating($rating = null)
+    public function setRacy($racy = null)
     {
-        $this->_rating = $rating;
-        return $this;
-    }
+        if ($this->getMajorProtocolVersion() == 2) {
+            require_once 'Zend/Gdata/App/VersionException.php';
+            throw new Zend_Gdata_App_VersionException(
+                'Calling getRacy() on a YouTube VideoEntry is deprecated ' .
+                'as of version 2 of the API.');
+        }
 
-    /**
-     * Returns the rating relating to the video.
-     *
-     * @return Zend_Gdata_Extension_Rating  The rating relating to the video
-     */
-    public function getRating()
-    {
-        return $this->_rating;
-    }
-
-    /**
-     * Sets the comments relating to the video.
-     *
-     * @param Zend_Gdata_Extension_Comments $comments The comments relating to the video
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setComments($comments = null)
-    {
-        $this->_comments = $comments;
-        return $this;
-    }
-
-    /**
-     * Returns the comments relating to the video.
-     *
-     * @return Zend_Gdata_Extension_Comments  The comments relating to the video
-     */
-    public function getComments()
-    {
-        return $this->_comments;
-    }
-
-    /**
-     * Sets the array of embedded feeds related to the video
-     *
-     * @param array $feedLink The array of embedded feeds relating to the video
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setFeedLink($feedLink = null)
-    {
-        $this->_feedLink = $feedLink;
+        $this->_racy = $racy;
         return $this;
     }
 
@@ -535,6 +363,18 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
             }
             return null;
         }
+    }
+
+    /**
+     * Sets the array of embedded feeds related to the video
+     *
+     * @param array $feedLink The array of embedded feeds relating to the video
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setFeedLink($feedLink = null)
+    {
+        $this->_feedLink = $feedLink;
+        return $this;
     }
 
     /**
@@ -599,10 +439,32 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     {
         $recorded = $this->getRecorded();
         if ($recorded != null) {
-          return $recorded->getText();
+            return $recorded->getText();
         } else {
-          return null;
+            return null;
         }
+    }
+
+    /**
+     * Gets the date that the video was recorded.
+     *
+     * @return Zend_Gdata_YouTube_Extension_Recorded|null
+     */
+    public function getRecorded()
+    {
+        return $this->_recorded;
+    }
+
+    /**
+     * Sets when the video was recorded.
+     *
+     * @param Zend_Gdata_YouTube_Extension_Recorded $recorded When the video was recorded
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setRecorded($recorded = null)
+    {
+        $this->_recorded = $recorded;
+        return $this;
     }
 
     /**
@@ -619,28 +481,6 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
-     * Gets the georss:where element
-     *
-     * @return Zend_Gdata_Geo_Extension_GeoRssWhere
-     */
-    public function getWhere()
-    {
-        return $this->_where;
-    }
-
-    /**
-     * Sets the georss:where element
-     *
-     * @param Zend_Gdata_Geo_Extension_GeoRssWhere $value The georss:where class value
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setWhere($value)
-    {
-        $this->_where = $value;
-        return $this;
-    }
-
-    /**
      * Gets the title of the video as a string.  null is returned
      * if the video title is not available.
      *
@@ -653,6 +493,19 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
             return $this->getMediaGroup()->getTitle()->getText();
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Get the VideoEntry's Zend_Gdata_YouTube_Extension_MediaGroup object.
+     * If the mediaGroup does not exist, then set it.
+     *
+     * @return void
+     */
+    public function ensureMediaGroupIsNotNull()
+    {
+        if ($this->getMediagroup() == null) {
+            $this->setMediagroup(new Zend_Gdata_YouTube_Extension_MediaGroup());
         }
     }
 
@@ -684,7 +537,6 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
         return $this;
     }
 
-
     /**
      * Gets the description  of the video as a string.  null is returned
      * if the video description is not available.
@@ -711,7 +563,8 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     {
         $this->ensureMediaGroupIsNotNull();
         if ($this->getMediaGroup()->getPlayer() != null &&
-             array_key_exists(0, $this->getMediaGroup()->getPlayer())) {
+            array_key_exists(0, $this->getMediaGroup()->getPlayer())
+        ) {
             $players = $this->getMediaGroup()->getPlayer();
             return $players[0]->getUrl();
         } else {
@@ -759,10 +612,10 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     {
         $this->ensureMediaGroupIsNotNull();
         foreach ($this->getMediaGroup()->getContent() as $content) {
-                if ($content->getType() === 'application/x-shockwave-flash') {
-                    return $content->getUrl();
-                }
+            if ($content->getType() === 'application/x-shockwave-flash') {
+                return $content->getUrl();
             }
+        }
         return null;
     }
 
@@ -877,6 +730,28 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
+     * Returns the statistics relating to the video.
+     *
+     * @return Zend_Gdata_YouTube_Extension_Statistics  The statistics relating to the video
+     */
+    public function getStatistics()
+    {
+        return $this->_statistics;
+    }
+
+    /**
+     * Sets the statistics relating to the video.
+     *
+     * @param Zend_Gdata_YouTube_Extension_Statistics $statistics The statistics relating to the video
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setStatistics($statistics = null)
+    {
+        $this->_statistics = $statistics;
+        return $this;
+    }
+
+    /**
      * Gets the location specified for this video, if available.  The location
      * is returned as an array containing the keys 'longitude' and 'latitude'.
      * null is returned if the location is not available.
@@ -887,7 +762,8 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     {
         if ($this->getWhere() != null &&
             $this->getWhere()->getPoint() != null &&
-            ($position = $this->getWhere()->getPoint()->getPos()) != null) {
+            ($position = $this->getWhere()->getPoint()->getPos()) != null
+        ) {
 
             $positionString = $position->__toString();
 
@@ -902,6 +778,28 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the georss:where element
+     *
+     * @return Zend_Gdata_Geo_Extension_GeoRssWhere
+     */
+    public function getWhere()
+    {
+        return $this->_where;
+    }
+
+    /**
+     * Sets the georss:where element
+     *
+     * @param Zend_Gdata_Geo_Extension_GeoRssWhere $value The georss:where class value
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setWhere($value)
+    {
+        $this->_where = $value;
+        return $this;
     }
 
     /**
@@ -924,6 +822,28 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
+     * Returns the rating relating to the video.
+     *
+     * @return Zend_Gdata_Extension_Rating  The rating relating to the video
+     */
+    public function getRating()
+    {
+        return $this->_rating;
+    }
+
+    /**
+     * Sets the rating relating to the video.
+     *
+     * @param Zend_Gdata_Extension_Rating $rating The rating relating to the video
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setRating($rating = null)
+    {
+        $this->_rating = $rating;
+        return $this;
+    }
+
+    /**
      * Gets the category of this video, if available.  The category is returned
      * as a string. Valid categories are found at:
      * http://gdata.youtube.com/schemas/2007/categories.cat
@@ -936,7 +856,7 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
         $this->ensureMediaGroupIsNotNull();
         $categories = $this->getMediaGroup()->getCategory();
         if ($categories != null) {
-            foreach($categories as $category) {
+            foreach ($categories as $category) {
                 if ($category->getScheme() == self::YOUTUBE_CATEGORY_SCHEMA) {
                     return $category->getText();
                 }
@@ -986,6 +906,20 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
+     * Set multiple developer tags for the video as strings.
+     *
+     * @param array $developerTags Array of developerTag for the video
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setVideoDeveloperTags($developerTags)
+    {
+        foreach ($developerTags as $developerTag) {
+            $this->addVideoDeveloperTag($developerTag);
+        }
+        return $this;
+    }
+
+    /**
      * Adds a developer tag to array of tags for the video.
      *
      * @param string $developerTag DeveloperTag for the video
@@ -1007,21 +941,6 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
     }
 
     /**
-     * Set multiple developer tags for the video as strings.
-     *
-     * @param array $developerTags Array of developerTag for the video
-     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
-     */
-    public function setVideoDeveloperTags($developerTags)
-    {
-        foreach($developerTags as $developerTag) {
-            $this->addVideoDeveloperTag($developerTag);
-        }
-        return $this;
-    }
-
-
-    /**
      * Get the current publishing state of the video.
      *
      * @return Zend_Gdata_YouTube_Extension_State|null The publishing state of this video
@@ -1031,24 +950,12 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
         $control = $this->getControl();
         if ($control != null &&
             $control->getDraft() != null &&
-            $control->getDraft()->getText() == 'yes') {
+            $control->getDraft()->getText() == 'yes'
+        ) {
 
             return $control->getState();
         }
         return null;
-    }
-
-    /**
-     * Get the VideoEntry's Zend_Gdata_YouTube_Extension_MediaGroup object.
-     * If the mediaGroup does not exist, then set it.
-     *
-     * @return void
-     */
-    public function ensureMediaGroupIsNotNull()
-    {
-        if ($this->getMediagroup() == null) {
-            $this->setMediagroup(new Zend_Gdata_YouTube_Extension_MediaGroup());
-        }
     }
 
     /**
@@ -1067,8 +974,8 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
                 'Rating for video entry must be between 1 and 5 inclusive.');
         }
 
-         require_once 'Zend/Gdata/Extension/Rating.php';
-         $rating = new Zend_Gdata_Extension_Rating(null, 1, 5, null,
+        require_once 'Zend/Gdata/Extension/Rating.php';
+        $rating = new Zend_Gdata_Extension_Rating(null, 1, 5, null,
             $ratingValue);
         $this->setRating($rating);
         return $this;
@@ -1090,6 +997,100 @@ class Zend_Gdata_YouTube_VideoEntry extends Zend_Gdata_YouTube_MediaEntry
             }
         }
         return $commentsFeedUrl;
+    }
+
+    /**
+     * Returns the comments relating to the video.
+     *
+     * @return Zend_Gdata_Extension_Comments  The comments relating to the video
+     */
+    public function getComments()
+    {
+        return $this->_comments;
+    }
+
+    /**
+     * Sets the comments relating to the video.
+     *
+     * @param Zend_Gdata_Extension_Comments $comments The comments relating to the video
+     * @return Zend_Gdata_YouTube_VideoEntry Provides a fluent interface
+     */
+    public function setComments($comments = null)
+    {
+        $this->_comments = $comments;
+        return $this;
+    }
+
+    /**
+     * Creates individual Entry objects of the appropriate type and
+     * stores them in the $_entry array based upon DOM data.
+     *
+     * @param DOMNode $child The DOMNode to process
+     */
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('yt') . ':' . 'statistics':
+                $statistics = new Zend_Gdata_YouTube_Extension_Statistics();
+                $statistics->transferFromDOM($child);
+                $this->_statistics = $statistics;
+                break;
+            case $this->lookupNamespace('yt') . ':' . 'racy':
+                $racy = new Zend_Gdata_YouTube_Extension_Racy();
+                $racy->transferFromDOM($child);
+                $this->_racy = $racy;
+                break;
+            case $this->lookupNamespace('yt') . ':' . 'recorded':
+                $recorded = new Zend_Gdata_YouTube_Extension_Recorded();
+                $recorded->transferFromDOM($child);
+                $this->_recorded = $recorded;
+                break;
+            case $this->lookupNamespace('yt') . ':' . 'location':
+                $location = new Zend_Gdata_YouTube_Extension_Location();
+                $location->transferFromDOM($child);
+                $this->_location = $location;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'rating':
+                $rating = new Zend_Gdata_Extension_Rating();
+                $rating->transferFromDOM($child);
+                $this->_rating = $rating;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'comments':
+                $comments = new Zend_Gdata_Extension_Comments();
+                $comments->transferFromDOM($child);
+                $this->_comments = $comments;
+                break;
+            case $this->lookupNamespace('yt') . ':' . 'noembed':
+                $noEmbed = new Zend_Gdata_YouTube_Extension_NoEmbed();
+                $noEmbed->transferFromDOM($child);
+                $this->_noEmbed = $noEmbed;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'feedLink':
+                $feedLink = new Zend_Gdata_Extension_FeedLink();
+                $feedLink->transferFromDOM($child);
+                $this->_feedLink[] = $feedLink;
+                break;
+            case $this->lookupNamespace('georss') . ':' . 'where':
+                $where = new Zend_Gdata_Geo_Extension_GeoRssWhere();
+                $where->transferFromDOM($child);
+                $this->_where = $where;
+                break;
+            case $this->lookupNamespace('atom') . ':' . 'link';
+                $link = new Zend_Gdata_YouTube_Extension_Link();
+                $link->transferFromDOM($child);
+                $this->_link[] = $link;
+                break;
+            case $this->lookupNamespace('app') . ':' . 'control':
+                $control = new Zend_Gdata_YouTube_Extension_Control();
+                $control->transferFromDOM($child);
+                $this->_control = $control;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
     }
 
 }

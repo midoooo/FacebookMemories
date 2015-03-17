@@ -38,16 +38,17 @@ use Facebook\GraphSessionInfo;
 use Facebook\FacebookHttpable;
 use Facebook\FacebookCurlHttpClient;
 use Facebook\FacebookCurl;
+
 define('DOWNLOADDIR', 'DownloadFiles');
 session_start();
 //this if will redirect back to index if not logged in, or unauthorized user
-if ( isset($_SESSION['token']) ) {
+if (isset($_SESSION['token'])) {
     FacebookSession::setDefaultApplication($app_id, $app_secret);
-    $sess=new FacebookSession($_SESSION['token']);
-    try{
+    $sess = new FacebookSession($_SESSION['token']);
+    try {
         $sess->validate($app_id, $app_secret);
 
-    }catch(FacebookAuthorizationException $e){
+    } catch (FacebookAuthorizationException $e) {
         header("Location: index.php");
         exit();
     }
@@ -61,7 +62,6 @@ if ( isset($_SESSION['token']) ) {
  * This class transacts with the Facbook API as well as consists the functions which are used by the AJAX calls made by
  * view.
  * @author Aakash Thakkar <thakkaraakash@hotmail.com>
-
  **/
 class Fbapiclass
 {
@@ -89,13 +89,14 @@ class Fbapiclass
      * @param $albumid  inputting album ID
      * @return string - returns album name
      */
-    function getAlbumNameFromId($albumid){
-        try{
-            $reqstring="/".$albumid;
-            $graphObject=$this->getFromFB($reqstring);
+    function getAlbumNameFromId($albumid)
+    {
+        try {
+            $reqstring = "/" . $albumid;
+            $graphObject = $this->getFromFB($reqstring);
             //var_dump($graphObject);
             return $graphObject->getProperty('name');
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return "Invalid albumid";
         }
     }
@@ -108,24 +109,23 @@ class Fbapiclass
      **/
     function getImageListFromAlbumId($albumid)
     {
-        try{
-            $reqstring="/".$albumid."/photos";
+        try {
+            $reqstring = "/" . $albumid . "/photos";
             $graphObject = $this->getFromFB($reqstring);
 
-            $data=$graphObject->getProperty('data');
-            $arr=$data->asArray();
+            $data = $graphObject->getProperty('data');
+            $arr = $data->asArray();
 
-            $outputarray=array();
-            $initial=0;
-            foreach ( $arr as $row ) {
-                $outputarray[$initial]=$row->images[0]->source;
+            $outputarray = array();
+            $initial = 0;
+            foreach ($arr as $row) {
+                $outputarray[$initial] = $row->images[0]->source;
                 $initial++;
             }
             return $outputarray;
 
 
-
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return $e->getMessage();
         }
 
@@ -139,22 +139,22 @@ class Fbapiclass
      */
     function getImageAndNameListFromAlbumId($albumid)
     {
-        try{
-            $reqstring="/".$albumid."/photos";
+        try {
+            $reqstring = "/" . $albumid . "/photos";
             $graphObject = $this->getFromFB($reqstring);
-            $data=$graphObject->getProperty('data');
+            $data = $graphObject->getProperty('data');
             //var_dump($data);
-            $arr=$data->asArray();
-            $outputarray=array();
-            $initial=0;
-            foreach ( $arr as $row ) {
-                $outputarray[$initial][0]=$row->images[0]->source;
-                $outputarray[$initial][1]= $row->name;
+            $arr = $data->asArray();
+            $outputarray = array();
+            $initial = 0;
+            foreach ($arr as $row) {
+                $outputarray[$initial][0] = $row->images[0]->source;
+                $outputarray[$initial][1] = $row->name;
                 // $outputarray[$initial]=$row->images[0]->source;
                 $initial++;
             }
             return $outputarray;
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return "Invalid albumid";
         }
     }
@@ -168,18 +168,18 @@ class Fbapiclass
      **/
     function createDirFromAlbumId($albumid)
     {
-        try{
-            $imagelist=$this->getImageListFromAlbumId($albumid);
-            system("rm -rf ".escapeshellarg(DOWNLOADDIR."/".$albumid));
-            mkdir(DOWNLOADDIR."/".$albumid);
-            $i=0;
-            foreach ( $imagelist as $img ) {
+        try {
+            $imagelist = $this->getImageListFromAlbumId($albumid);
+            system("rm -rf " . escapeshellarg(DOWNLOADDIR . "/" . $albumid));
+            mkdir(DOWNLOADDIR . "/" . $albumid);
+            $i = 0;
+            foreach ($imagelist as $img) {
                 $file = basename($img, ".jpg");
-                copy($img, DOWNLOADDIR."/".$albumid."/".$albumid.$i.".jpg");
+                copy($img, DOWNLOADDIR . "/" . $albumid . "/" . $albumid . $i . ".jpg");
                 $i++;
             }
             return 1;
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return "Invalid albumid";
         }
     }
@@ -192,64 +192,64 @@ class Fbapiclass
      **/
     function createMultipleAlbumDirs($albumids)
     {
-        try{
-            $dirname=DOWNLOADDIR."/".$_SESSION['userid'];
-            $counter=0;
-            if ( file_exists($dirname) ) {
+        try {
+            $dirname = DOWNLOADDIR . "/" . $_SESSION['userid'];
+            $counter = 0;
+            if (file_exists($dirname)) {
                 echo "exists";
-                $counter=$this->getDirNameCounter();
-                $dirname=$dirname.$counter;
+                $counter = $this->getDirNameCounter();
+                $dirname = $dirname . $counter;
             }
             mkdir($dirname);
-            foreach ( $albumids as $album ) {
+            foreach ($albumids as $album) {
 
-                $imagelist=$this->getImageListFromAlbumId($album);
+                $imagelist = $this->getImageListFromAlbumId($album);
 
-                if ( is_array($imagelist) ) {
-                    system("rm -rf ".escapeshellarg($dirname."/".$album));
-                    mkdir($dirname."/".$album);
-                    $i=0;
-                    foreach ( $imagelist as $img ) {
+                if (is_array($imagelist)) {
+                    system("rm -rf " . escapeshellarg($dirname . "/" . $album));
+                    mkdir($dirname . "/" . $album);
+                    $i = 0;
+                    foreach ($imagelist as $img) {
                         $file = basename($img, ".jpg");
-                        copy($img, $dirname."/".$album."/".$album.$i.".jpg");
+                        copy($img, $dirname . "/" . $album . "/" . $album . $i . ".jpg");
                         $i++;
                     }
                 } else {
                     throw new Exception("Invalid Request!");
                 }
             }
-            if ( $counter==0 ) {
+            if ($counter == 0) {
                 return $_SESSION['userid'];
             } else {
-                return $_SESSION['userid'].$counter;
+                return $_SESSION['userid'] . $counter;
             }
 
         } catch (Exception $e) {
-            $val="";
-            if ( $counter==0 ) {
-                $val=$_SESSION['userid'];
+            $val = "";
+            if ($counter == 0) {
+                $val = $_SESSION['userid'];
             } else {
-                $val= $_SESSION['userid'].$counter;
+                $val = $_SESSION['userid'] . $counter;
             }
-            system("rm -rf ".escapeshellarg(DOWNLOADDIR."/".$val));
+            system("rm -rf " . escapeshellarg(DOWNLOADDIR . "/" . $val));
             return "Invalid albumid";
         }
 
 
     }
+
     /**
      * Directory name available counter
      * @return available directory name counter
      **/
     function getDirNameCounter()
     {
-        $counter=2;
-        while ( file_exists(DOWNLOADDIR."/".$_SESSION['userid'].$counter) ) {
+        $counter = 2;
+        while (file_exists(DOWNLOADDIR . "/" . $_SESSION['userid'] . $counter)) {
             $counter++;
         }
         return $counter;
     }
-
 
 
     /**
@@ -258,8 +258,8 @@ class Fbapiclass
      **/
     function getFileNameCounterWZip()
     {
-        $counter=2;
-        while ( file_exists(DOWNLOADDIR."/".$_SESSION['userid'].$counter.".zip") ) {
+        $counter = 2;
+        while (file_exists(DOWNLOADDIR . "/" . $_SESSION['userid'] . $counter . ".zip")) {
             $counter++;
         }
         return $counter;
@@ -274,28 +274,29 @@ class Fbapiclass
     {
 
 
-        try{
-            if ( file_exists(DOWNLOADDIR."/".$_SESSION['userid'].".zip") ) {
+        try {
+            if (file_exists(DOWNLOADDIR . "/" . $_SESSION['userid'] . ".zip")) {
 
-                $counter=$this->getFileNameCounterWZip();
+                $counter = $this->getFileNameCounterWZip();
 
-                $this->Zip(DOWNLOADDIR."/".$dirs,DOWNLOADDIR."/".$_SESSION['userid'].$counter.".zip", true);
-                if ( file_exists(DOWNLOADDIR."/".$_SESSION['userid'].$counter.".zip") ) {
-                    system("rm -rf ".escapeshellarg(DOWNLOADDIR."/".$dirs));
+                $this->Zip(DOWNLOADDIR . "/" . $dirs, DOWNLOADDIR . "/" . $_SESSION['userid'] . $counter . ".zip", true);
+                if (file_exists(DOWNLOADDIR . "/" . $_SESSION['userid'] . $counter . ".zip")) {
+                    system("rm -rf " . escapeshellarg(DOWNLOADDIR . "/" . $dirs));
                     return $counter;
                 } else {
                     return 0;
                 }
             } else {
-                $this->Zip(DOWNLOADDIR."/".$dirs,DOWNLOADDIR."/".$_SESSION['userid'].".zip", true);
-                system("rm -rf ".escapeshellarg(DOWNLOADDIR."/".$dirs));
-                return file_exists(DOWNLOADDIR."/".$_SESSION['userid'].".zip");
+                $this->Zip(DOWNLOADDIR . "/" . $dirs, DOWNLOADDIR . "/" . $_SESSION['userid'] . ".zip", true);
+                system("rm -rf " . escapeshellarg(DOWNLOADDIR . "/" . $dirs));
+                return file_exists(DOWNLOADDIR . "/" . $_SESSION['userid'] . ".zip");
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
             return "Invalid Request";
         }
 
     }
+
     /**
      * @param $source String source folder
      * @param $destination String destination folder path
@@ -320,9 +321,9 @@ class Fbapiclass
             $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);
             if ($include_dir) {
                 $arr = explode("/", $source);
-                $maindir = $arr[count($arr)- 1];
+                $maindir = $arr[count($arr) - 1];
                 $source = "";
-                for ($i=0; $i < count($arr) - 1; $i++) {
+                for ($i = 0; $i < count($arr) - 1; $i++) {
                     $source .= '/' . $arr[$i];
                 }
                 $source = substr($source, 1);
@@ -330,13 +331,12 @@ class Fbapiclass
             }
             foreach ($files as $file) {
                 $file = str_replace('\\', '/', $file);
-                if( in_array(substr($file, strrpos($file, '/')+1), array('.', '..')) )
+                if (in_array(substr($file, strrpos($file, '/') + 1), array('.', '..')))
                     continue;
                 $file = realpath($file);
                 if (is_dir($file) === true) {
                     $zip->addEmptyDir(str_replace($source . '/', '', $file . '/'));
-                }
-                else if (is_file($file) === true) {
+                } else if (is_file($file) === true) {
                     $zip->addFromString(str_replace($source . '/', '', $file), file_get_contents($file));
                 }
             }
@@ -347,20 +347,20 @@ class Fbapiclass
     }
 }
 
-if ( isset($_POST['functype']) && isset($_POST['funcval']) ) {
-    $fbapi=new Fbapiclass();
+if (isset($_POST['functype']) && isset($_POST['funcval'])) {
+    $fbapi = new Fbapiclass();
     mkdir(DOWNLOADDIR);
 
     //delete all files older than 1 hour
-    $dir = DOWNLOADDIR."/";
-    foreach (glob($dir."*") as $file) {
+    $dir = DOWNLOADDIR . "/";
+    foreach (glob($dir . "*") as $file) {
 
         if (filemtime($file) < time() - 3600) {
             unlink($file);
         }
     }
     //Used to download single albums through AJAX
-    if ( $_POST['functype']=='downloadImagesFromAlbum' && isset($_POST['funcval']) ) {
+    if ($_POST['functype'] == 'downloadImagesFromAlbum' && isset($_POST['funcval'])) {
 
         $fbapi->createDirFromAlbumId($_POST['funcval']);
         echo $fbapi->createZipFromDirs($_POST['funcval']);
@@ -368,15 +368,15 @@ if ( isset($_POST['functype']) && isset($_POST['funcval']) ) {
 
     }
     //used to download multiple or all albums through AJAX
-    if ( $_POST['functype']=='downloadMultipleAlbums' && isset($_POST['funcval'])) {
-        $albumids=$_POST['funcval'];
-        $dirname=$fbapi->createMultipleAlbumDirs($albumids);
+    if ($_POST['functype'] == 'downloadMultipleAlbums' && isset($_POST['funcval'])) {
+        $albumids = $_POST['funcval'];
+        $dirname = $fbapi->createMultipleAlbumDirs($albumids);
 
-        $isCreated=$fbapi->createZipFromDirs($dirname);
+        $isCreated = $fbapi->createZipFromDirs($dirname);
         echo $isCreated;
 
     }
-    if ($_POST['functype']=='getImagesAndNamesFromAlbumid' && isset($_POST['funcval'])){
+    if ($_POST['functype'] == 'getImagesAndNamesFromAlbumid' && isset($_POST['funcval'])) {
         echo json_encode($fbapi->getImageAndNameListFromAlbumId($_POST['funcval']));
     }
 

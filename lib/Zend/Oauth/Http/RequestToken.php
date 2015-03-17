@@ -47,9 +47,9 @@ class Zend_Oauth_Http_RequestToken extends Zend_Oauth_Http
      */
     public function execute()
     {
-        $params   = $this->assembleParams();
+        $params = $this->assembleParams();
         $response = $this->startRequestCycle($params);
-        $return   = new Zend_Oauth_Token_Request($response);
+        $return = new Zend_Oauth_Token_Request($response);
         return $return;
     }
 
@@ -61,11 +61,11 @@ class Zend_Oauth_Http_RequestToken extends Zend_Oauth_Http
     public function assembleParams()
     {
         $params = array(
-            'oauth_consumer_key'     => $this->_consumer->getConsumerKey(),
-            'oauth_nonce'            => $this->_httpUtility->generateNonce(),
-            'oauth_timestamp'        => $this->_httpUtility->generateTimestamp(),
+            'oauth_consumer_key' => $this->_consumer->getConsumerKey(),
+            'oauth_nonce' => $this->_httpUtility->generateNonce(),
+            'oauth_timestamp' => $this->_httpUtility->generateTimestamp(),
             'oauth_signature_method' => $this->_consumer->getSignatureMethod(),
-            'oauth_version'          => $this->_consumer->getVersion(),
+            'oauth_version' => $this->_consumer->getVersion(),
         );
 
         // indicates we support 1.0a
@@ -89,6 +89,30 @@ class Zend_Oauth_Http_RequestToken extends Zend_Oauth_Http
         );
 
         return $params;
+    }
+
+    /**
+     * Attempt a request based on the current configured OAuth Request Scheme and
+     * return the resulting HTTP Response.
+     *
+     * @param  array $params
+     * @return Zend_Http_Response
+     */
+    protected function _attemptRequest(array $params)
+    {
+        switch ($this->_preferredRequestScheme) {
+            case Zend_Oauth::REQUEST_SCHEME_HEADER:
+                $httpClient = $this->getRequestSchemeHeaderClient($params);
+                break;
+            case Zend_Oauth::REQUEST_SCHEME_POSTBODY:
+                $httpClient = $this->getRequestSchemePostBodyClient($params);
+                break;
+            case Zend_Oauth::REQUEST_SCHEME_QUERYSTRING:
+                $httpClient = $this->getRequestSchemeQueryStringClient($params,
+                    $this->_consumer->getRequestTokenUrl());
+                break;
+        }
+        return $httpClient->request();
     }
 
     /**
@@ -134,29 +158,5 @@ class Zend_Oauth_Http_RequestToken extends Zend_Oauth_Http
             Zend_Http_Client::ENC_URLENCODED
         );
         return $client;
-    }
-
-    /**
-     * Attempt a request based on the current configured OAuth Request Scheme and
-     * return the resulting HTTP Response.
-     *
-     * @param  array $params
-     * @return Zend_Http_Response
-     */
-    protected function _attemptRequest(array $params)
-    {
-        switch ($this->_preferredRequestScheme) {
-            case Zend_Oauth::REQUEST_SCHEME_HEADER:
-                $httpClient = $this->getRequestSchemeHeaderClient($params);
-                break;
-            case Zend_Oauth::REQUEST_SCHEME_POSTBODY:
-                $httpClient = $this->getRequestSchemePostBodyClient($params);
-                break;
-            case Zend_Oauth::REQUEST_SCHEME_QUERYSTRING:
-                $httpClient = $this->getRequestSchemeQueryStringClient($params,
-                    $this->_consumer->getRequestTokenUrl());
-                break;
-        }
-        return $httpClient->request();
     }
 }

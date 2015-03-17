@@ -47,117 +47,8 @@ class Zend_Pdf_Element_String extends Zend_Pdf_Element
      */
     public function __construct($val)
     {
-        $this->value   = (string)$val;
+        $this->value = (string)$val;
     }
-
-
-    /**
-     * Return type of the element.
-     *
-     * @return integer
-     */
-    public function getType()
-    {
-        return Zend_Pdf_Element::TYPE_STRING;
-    }
-
-
-    /**
-     * Return object as string
-     *
-     * @param Zend_Pdf_Factory $factory
-     * @return string
-     */
-    public function toString($factory = null)
-    {
-        return '(' . self::escape((string)$this->value) . ')';
-    }
-
-
-    /**
-     * Escape string according to the PDF rules
-     *
-     * @param string $str
-     * @return string
-     */
-    public static function escape($str)
-    {
-        $outEntries = array();
-
-        foreach (str_split($str, 128) as $chunk) {
-            // Collect sequence of unescaped characters
-            $offset = strcspn($chunk, "\n\r\t\x08\x0C()\\");
-            $chunkOut = substr($chunk, 0, $offset);
-
-            while ($offset < strlen($chunk)) {
-                $nextCode = ord($chunk[$offset++]);
-                switch ($nextCode) {
-                    // "\n" - line feed (LF)
-                    case 10:
-                        $chunkOut .= '\\n';
-                        break;
-
-                    // "\r" - carriage return (CR)
-                    case 13:
-                        $chunkOut .= '\\r';
-                        break;
-
-                    // "\t" - horizontal tab (HT)
-                    case 9:
-                        $chunkOut .= '\\t';
-                        break;
-
-                    // "\b" - backspace (BS)
-                    case 8:
-                        $chunkOut .= '\\b';
-                        break;
-
-                    // "\f" - form feed (FF)
-                    case 12:
-                        $chunkOut .= '\\f';
-                        break;
-
-                    // '(' - left paranthesis
-                    case 40:
-                        $chunkOut .= '\\(';
-                        break;
-
-                    // ')' - right paranthesis
-                    case 41:
-                        $chunkOut .= '\\)';
-                        break;
-
-                    // '\' - backslash
-                    case 92:
-                        $chunkOut .= '\\\\';
-                        break;
-
-                    default:
-                        // This code is never executed extually
-                        //
-                        // Don't use non-ASCII characters escaping
-                        // if ($nextCode >= 32 && $nextCode <= 126 ) {
-                        //     // Visible ASCII symbol
-                        //     $chunkEntries[] = chr($nextCode);
-                        // } else {
-                        //     $chunkEntries[] = sprintf('\\%03o', $nextCode);
-                        // }
-
-                        break;
-                }
-
-                // Collect sequence of unescaped characters
-                $start = $offset;
-                $offset += strcspn($chunk, "\n\r\t\x08\x0C()\\", $offset);
-                $chunkOut .= substr($chunk, $start, $offset - $start);
-            }
-
-            $outEntries[] = $chunkOut;
-        }
-
-        return implode("\\\n", $outEntries);
-    }
-
 
     /**
      * Unescape string according to the PDF rules
@@ -173,7 +64,7 @@ class Zend_Pdf_Element_String extends Zend_Pdf_Element
         while ($offset < strlen($str)) {
             // Searche for the next escaped character/sequence
             $escapeCharOffset = strpos($str, '\\', $offset);
-            if ($escapeCharOffset === false  ||  $escapeCharOffset == strlen($str) - 1) {
+            if ($escapeCharOffset === false || $escapeCharOffset == strlen($str) - 1) {
                 // There are no escaped characters or '\' char has came at the end of string
                 $outEntries[] = substr($str, $offset);
                 break;
@@ -258,6 +149,111 @@ class Zend_Pdf_Element_String extends Zend_Pdf_Element
         }
 
         return implode($outEntries);
+    }
+
+    /**
+     * Return type of the element.
+     *
+     * @return integer
+     */
+    public function getType()
+    {
+        return Zend_Pdf_Element::TYPE_STRING;
+    }
+
+    /**
+     * Return object as string
+     *
+     * @param Zend_Pdf_Factory $factory
+     * @return string
+     */
+    public function toString($factory = null)
+    {
+        return '(' . self::escape((string)$this->value) . ')';
+    }
+
+    /**
+     * Escape string according to the PDF rules
+     *
+     * @param string $str
+     * @return string
+     */
+    public static function escape($str)
+    {
+        $outEntries = array();
+
+        foreach (str_split($str, 128) as $chunk) {
+            // Collect sequence of unescaped characters
+            $offset = strcspn($chunk, "\n\r\t\x08\x0C()\\");
+            $chunkOut = substr($chunk, 0, $offset);
+
+            while ($offset < strlen($chunk)) {
+                $nextCode = ord($chunk[$offset++]);
+                switch ($nextCode) {
+                    // "\n" - line feed (LF)
+                    case 10:
+                        $chunkOut .= '\\n';
+                        break;
+
+                    // "\r" - carriage return (CR)
+                    case 13:
+                        $chunkOut .= '\\r';
+                        break;
+
+                    // "\t" - horizontal tab (HT)
+                    case 9:
+                        $chunkOut .= '\\t';
+                        break;
+
+                    // "\b" - backspace (BS)
+                    case 8:
+                        $chunkOut .= '\\b';
+                        break;
+
+                    // "\f" - form feed (FF)
+                    case 12:
+                        $chunkOut .= '\\f';
+                        break;
+
+                    // '(' - left paranthesis
+                    case 40:
+                        $chunkOut .= '\\(';
+                        break;
+
+                    // ')' - right paranthesis
+                    case 41:
+                        $chunkOut .= '\\)';
+                        break;
+
+                    // '\' - backslash
+                    case 92:
+                        $chunkOut .= '\\\\';
+                        break;
+
+                    default:
+                        // This code is never executed extually
+                        //
+                        // Don't use non-ASCII characters escaping
+                        // if ($nextCode >= 32 && $nextCode <= 126 ) {
+                        //     // Visible ASCII symbol
+                        //     $chunkEntries[] = chr($nextCode);
+                        // } else {
+                        //     $chunkEntries[] = sprintf('\\%03o', $nextCode);
+                        // }
+
+                        break;
+                }
+
+                // Collect sequence of unescaped characters
+                $start = $offset;
+                $offset += strcspn($chunk, "\n\r\t\x08\x0C()\\", $offset);
+                $chunkOut .= substr($chunk, $start, $offset - $start);
+            }
+
+            $outEntries[] = $chunkOut;
+        }
+
+        return implode("\\\n", $outEntries);
     }
 
 }

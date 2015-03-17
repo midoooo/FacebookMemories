@@ -64,38 +64,12 @@ class Zend_Gdata_Gapps_EmailListQuery extends Zend_Gdata_Gapps_Query
      *          startEmailListName property.
      */
     public function __construct($domain = null, $emailListName = null,
-            $recipient = null, $startEmailListName = null)
+                                $recipient = null, $startEmailListName = null)
     {
         parent::__construct($domain);
         $this->setEmailListName($emailListName);
         $this->setRecipient($recipient);
         $this->setStartEmailListName($startEmailListName);
-    }
-
-    /**
-     * Set the email list name to query for. When set, only lists with a name
-     * matching this value will be returned in search results. Set to
-     * null to disable filtering by list name.
-     *
-     * @param string $value The email list name to filter search results by,
-     *          or null to disable.
-     */
-     public function setEmailListName($value)
-     {
-         $this->_emailListName = $value;
-     }
-
-    /**
-     * Get the email list name to query for. If no name is set, null will be
-     * returned.
-     *
-     * @see setEmailListName
-     * @return string The email list name to filter search results by, or null
-     *              if disabled.
-     */
-    public function getEmailListName()
-    {
-        return $this->_emailListName;
     }
 
     /**
@@ -110,26 +84,8 @@ class Zend_Gdata_Gapps_EmailListQuery extends Zend_Gdata_Gapps_Query
     {
         if ($value !== null) {
             $this->_params['recipient'] = $value;
-        }
-        else {
-            unset($this->_params['recipient']);
-        }
-    }
-
-    /**
-     * Get the recipient email address to query for. If no recipient is set,
-     * null will be returned.
-     *
-     * @see setRecipient
-     * @return string The recipient email address to filter search results by,
-     *              or null if disabled.
-     */
-    public function getRecipient()
-    {
-        if (array_key_exists('recipient', $this->_params)) {
-            return $this->_params['recipient'];
         } else {
-            return null;
+            unset($this->_params['recipient']);
         }
     }
 
@@ -146,6 +102,49 @@ class Zend_Gdata_Gapps_EmailListQuery extends Zend_Gdata_Gapps_Query
             $this->_params['startEmailListName'] = $value;
         } else {
             unset($this->_params['startEmailListName']);
+        }
+    }
+
+    /**
+     * Get the email list name to query for. If no name is set, null will be
+     * returned.
+     *
+     * @see setEmailListName
+     * @return string The email list name to filter search results by, or null
+     *              if disabled.
+     */
+    public function getEmailListName()
+    {
+        return $this->_emailListName;
+    }
+
+    /**
+     * Set the email list name to query for. When set, only lists with a name
+     * matching this value will be returned in search results. Set to
+     * null to disable filtering by list name.
+     *
+     * @param string $value The email list name to filter search results by,
+     *          or null to disable.
+     */
+    public function setEmailListName($value)
+    {
+        $this->_emailListName = $value;
+    }
+
+    /**
+     * Get the recipient email address to query for. If no recipient is set,
+     * null will be returned.
+     *
+     * @see setRecipient
+     * @return string The recipient email address to filter search results by,
+     *              or null if disabled.
+     */
+    public function getRecipient()
+    {
+        if (array_key_exists('recipient', $this->_params)) {
+            return $this->_params['recipient'];
+        } else {
+            return null;
         }
     }
 

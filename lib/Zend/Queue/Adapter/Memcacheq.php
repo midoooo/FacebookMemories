@@ -38,7 +38,7 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
 {
     const DEFAULT_HOST = '127.0.0.1';
     const DEFAULT_PORT = 22201;
-    const EOL          = "\r\n";
+    const EOL = "\r\n";
 
     /**
      * @var Memcache
@@ -61,7 +61,7 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
     protected $_socket = null;
 
     /********************************************************************
-    * Constructor / Destructor
+     * Constructor / Destructor
      *********************************************************************/
 
     /**
@@ -124,26 +124,6 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
      *********************************************************************/
 
     /**
-     * Does a queue already exist?
-     *
-     * Throws an exception if the adapter cannot determine if a queue exists.
-     * use isSupported('isExists') to determine if an adapter can test for
-     * queue existance.
-     *
-     * @param  string $name
-     * @return boolean
-     * @throws Zend_Queue_Exception
-     */
-    public function isExists($name)
-    {
-        if (empty($this->_queues)) {
-            $this->getQueues();
-        }
-
-        return in_array($name, $this->_queues);
-    }
-
-    /**
      * Create a new queue
      *
      * Visibility timeout is how long a message is left in the queue "invisible"
@@ -151,12 +131,12 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
      * timeout, then the message is deleted.  However, if the timeout expires
      * then the message will be made available to other queue readers.
      *
-     * @param  string  $name    queue name
+     * @param  string $name queue name
      * @param  integer $timeout default visibility timeout
      * @return boolean
      * @throws Zend_Queue_Exception
      */
-    public function create($name, $timeout=null)
+    public function create($name, $timeout = null)
     {
         if ($this->isExists($name)) {
             return false;
@@ -178,28 +158,23 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
     }
 
     /**
-     * Delete a queue and all of it's messages
+     * Does a queue already exist?
      *
-     * Returns false if the queue is not found, true if the queue exists
+     * Throws an exception if the adapter cannot determine if a queue exists.
+     * use isSupported('isExists') to determine if an adapter can test for
+     * queue existance.
      *
-     * @param  string  $name queue name
+     * @param  string $name
      * @return boolean
      * @throws Zend_Queue_Exception
      */
-    public function delete($name)
+    public function isExists($name)
     {
-        $response = $this->_sendCommand('delete ' . $name, array('DELETED', 'NOT_FOUND'), true);
-
-        if (in_array('DELETED', $response)) {
-            $key = array_search($name, $this->_queues);
-
-            if ($key !== false) {
-                unset($this->_queues[$key]);
-            }
-            return true;
+        if (empty($this->_queues)) {
+            $this->getQueues();
         }
 
-        return false;
+        return in_array($name, $this->_queues);
     }
 
     /**
@@ -225,177 +200,19 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
     }
 
     /**
-     * Return the approximate number of messages in the queue
-     *
-     * @param  Zend_Queue $queue
-     * @return integer
-     * @throws Zend_Queue_Exception (not supported)
-     */
-    public function count(Zend_Queue $queue=null)
-    {
-        require_once 'Zend/Queue/Exception.php';
-        throw new Zend_Queue_Exception('count() is not supported in this adapter');
-    }
-
-    /********************************************************************
-     * Messsage management functions
-     *********************************************************************/
-
-    /**
-     * Send a message to the queue
-     *
-     * @param  string     $message Message to send to the active queue
-     * @param  Zend_Queue $queue
-     * @return Zend_Queue_Message
-     * @throws Zend_Queue_Exception
-     */
-    public function send($message, Zend_Queue $queue=null)
-    {
-        if ($queue === null) {
-            $queue = $this->_queue;
-        }
-
-        if (!$this->isExists($queue->getName())) {
-            require_once 'Zend/Queue/Exception.php';
-            throw new Zend_Queue_Exception('Queue does not exist:' . $queue->getName());
-        }
-
-        $message = (string) $message;
-        $data    = array(
-            'message_id' => md5(uniqid(rand(), true)),
-            'handle'     => null,
-            'body'       => $message,
-            'md5'        => md5($message),
-        );
-
-        $result = $this->_cache->set($queue->getName(), $message, 0, 0);
-        if ($result === false) {
-            require_once 'Zend/Queue/Exception.php';
-            throw new Zend_Queue_Exception('failed to insert message into queue:' . $queue->getName());
-        }
-
-        $options = array(
-            'queue' => $queue,
-            'data'  => $data,
-        );
-
-        $classname = $queue->getMessageClass();
-        if (!class_exists($classname)) {
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass($classname);
-        }
-        return new $classname($options);
-    }
-
-    /**
-     * Get messages in the queue
-     *
-     * @param  integer    $maxMessages  Maximum number of messages to return
-     * @param  integer    $timeout      Visibility timeout for these messages
-     * @param  Zend_Queue $queue
-     * @return Zend_Queue_Message_Iterator
-     * @throws Zend_Queue_Exception
-     */
-    public function receive($maxMessages=null, $timeout=null, Zend_Queue $queue=null)
-    {
-        if ($maxMessages === null) {
-            $maxMessages = 1;
-        }
-
-        if ($timeout === null) {
-            $timeout = self::RECEIVE_TIMEOUT_DEFAULT;
-        }
-        if ($queue === null) {
-            $queue = $this->_queue;
-        }
-
-        $msgs = array();
-        if ($maxMessages > 0 ) {
-            for ($i = 0; $i < $maxMessages; $i++) {
-                $data = array(
-                    'handle' => md5(uniqid(rand(), true)),
-                    'body'   => $this->_cache->get($queue->getName()),
-                );
-
-                $msgs[] = $data;
-            }
-        }
-
-        $options = array(
-            'queue'        => $queue,
-            'data'         => $msgs,
-            'messageClass' => $queue->getMessageClass(),
-        );
-
-        $classname = $queue->getMessageSetClass();
-        if (!class_exists($classname)) {
-            require_once 'Zend/Loader.php';
-            Zend_Loader::loadClass($classname);
-        }
-        return new $classname($options);
-    }
-
-    /**
-     * Delete a message from the queue
-     *
-     * Returns true if the message is deleted, false if the deletion is
-     * unsuccessful.
-     *
-     * @param  Zend_Queue_Message $message
-     * @return boolean
-     * @throws Zend_Queue_Exception (unsupported)
-     */
-    public function deleteMessage(Zend_Queue_Message $message)
-    {
-        require_once 'Zend/Queue/Exception.php';
-        throw new Zend_Queue_Exception('deleteMessage() is not supported in  ' . get_class($this));
-    }
-
-    /********************************************************************
-     * Supporting functions
-     *********************************************************************/
-
-    /**
-     * Return a list of queue capabilities functions
-     *
-     * $array['function name'] = true or false
-     * true is supported, false is not supported.
-     *
-     * @param  string $name
-     * @return array
-     */
-    public function getCapabilities()
-    {
-        return array(
-            'create'        => true,
-            'delete'        => true,
-            'send'          => true,
-            'receive'       => true,
-            'deleteMessage' => false,
-            'getQueues'     => true,
-            'count'         => false,
-            'isExists'      => true,
-        );
-    }
-
-    /********************************************************************
-     * Functions that are not part of the Zend_Queue_Adapter_Abstract
-     *********************************************************************/
-
-    /**
      * sends a command to MemcacheQ
      *
      * The memcache functions by php cannot handle all types of requests
      * supported by MemcacheQ
      * Non-standard requests are handled by this function.
      *
-     * @param  string  $command - command to send to memcacheQ
-     * @param  array   $terminator - strings to indicate end of memcacheQ response
+     * @param  string $command - command to send to memcacheQ
+     * @param  array $terminator - strings to indicate end of memcacheQ response
      * @param  boolean $include_term - include terminator in response
      * @return array
      * @throws Zend_Queue_Exception if connection cannot be opened
      */
-    protected function _sendCommand($command, array $terminator, $include_term=false)
+    protected function _sendCommand($command, array $terminator, $include_term = false)
     {
         if (!is_resource($this->_socket)) {
             $this->_socket = fsockopen($this->_host, $this->_port, $errno, $errstr, 10);
@@ -424,5 +241,188 @@ class Zend_Queue_Adapter_Memcacheq extends Zend_Queue_Adapter_AdapterAbstract
         }
 
         return $response;
+    }
+
+    /**
+     * Delete a queue and all of it's messages
+     *
+     * Returns false if the queue is not found, true if the queue exists
+     *
+     * @param  string $name queue name
+     * @return boolean
+     * @throws Zend_Queue_Exception
+     */
+    public function delete($name)
+    {
+        $response = $this->_sendCommand('delete ' . $name, array('DELETED', 'NOT_FOUND'), true);
+
+        if (in_array('DELETED', $response)) {
+            $key = array_search($name, $this->_queues);
+
+            if ($key !== false) {
+                unset($this->_queues[$key]);
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    /********************************************************************
+     * Messsage management functions
+     *********************************************************************/
+
+    /**
+     * Return the approximate number of messages in the queue
+     *
+     * @param  Zend_Queue $queue
+     * @return integer
+     * @throws Zend_Queue_Exception (not supported)
+     */
+    public function count(Zend_Queue $queue = null)
+    {
+        require_once 'Zend/Queue/Exception.php';
+        throw new Zend_Queue_Exception('count() is not supported in this adapter');
+    }
+
+    /**
+     * Send a message to the queue
+     *
+     * @param  string $message Message to send to the active queue
+     * @param  Zend_Queue $queue
+     * @return Zend_Queue_Message
+     * @throws Zend_Queue_Exception
+     */
+    public function send($message, Zend_Queue $queue = null)
+    {
+        if ($queue === null) {
+            $queue = $this->_queue;
+        }
+
+        if (!$this->isExists($queue->getName())) {
+            require_once 'Zend/Queue/Exception.php';
+            throw new Zend_Queue_Exception('Queue does not exist:' . $queue->getName());
+        }
+
+        $message = (string)$message;
+        $data = array(
+            'message_id' => md5(uniqid(rand(), true)),
+            'handle' => null,
+            'body' => $message,
+            'md5' => md5($message),
+        );
+
+        $result = $this->_cache->set($queue->getName(), $message, 0, 0);
+        if ($result === false) {
+            require_once 'Zend/Queue/Exception.php';
+            throw new Zend_Queue_Exception('failed to insert message into queue:' . $queue->getName());
+        }
+
+        $options = array(
+            'queue' => $queue,
+            'data' => $data,
+        );
+
+        $classname = $queue->getMessageClass();
+        if (!class_exists($classname)) {
+            require_once 'Zend/Loader.php';
+            Zend_Loader::loadClass($classname);
+        }
+        return new $classname($options);
+    }
+
+    /**
+     * Get messages in the queue
+     *
+     * @param  integer $maxMessages Maximum number of messages to return
+     * @param  integer $timeout Visibility timeout for these messages
+     * @param  Zend_Queue $queue
+     * @return Zend_Queue_Message_Iterator
+     * @throws Zend_Queue_Exception
+     */
+    public function receive($maxMessages = null, $timeout = null, Zend_Queue $queue = null)
+    {
+        if ($maxMessages === null) {
+            $maxMessages = 1;
+        }
+
+        if ($timeout === null) {
+            $timeout = self::RECEIVE_TIMEOUT_DEFAULT;
+        }
+        if ($queue === null) {
+            $queue = $this->_queue;
+        }
+
+        $msgs = array();
+        if ($maxMessages > 0) {
+            for ($i = 0; $i < $maxMessages; $i++) {
+                $data = array(
+                    'handle' => md5(uniqid(rand(), true)),
+                    'body' => $this->_cache->get($queue->getName()),
+                );
+
+                $msgs[] = $data;
+            }
+        }
+
+        $options = array(
+            'queue' => $queue,
+            'data' => $msgs,
+            'messageClass' => $queue->getMessageClass(),
+        );
+
+        $classname = $queue->getMessageSetClass();
+        if (!class_exists($classname)) {
+            require_once 'Zend/Loader.php';
+            Zend_Loader::loadClass($classname);
+        }
+        return new $classname($options);
+    }
+
+    /********************************************************************
+     * Supporting functions
+     *********************************************************************/
+
+    /**
+     * Delete a message from the queue
+     *
+     * Returns true if the message is deleted, false if the deletion is
+     * unsuccessful.
+     *
+     * @param  Zend_Queue_Message $message
+     * @return boolean
+     * @throws Zend_Queue_Exception (unsupported)
+     */
+    public function deleteMessage(Zend_Queue_Message $message)
+    {
+        require_once 'Zend/Queue/Exception.php';
+        throw new Zend_Queue_Exception('deleteMessage() is not supported in  ' . get_class($this));
+    }
+
+    /********************************************************************
+     * Functions that are not part of the Zend_Queue_Adapter_Abstract
+     *********************************************************************/
+
+    /**
+     * Return a list of queue capabilities functions
+     *
+     * $array['function name'] = true or false
+     * true is supported, false is not supported.
+     *
+     * @param  string $name
+     * @return array
+     */
+    public function getCapabilities()
+    {
+        return array(
+            'create' => true,
+            'delete' => true,
+            'send' => true,
+            'receive' => true,
+            'deleteMessage' => false,
+            'getQueues' => true,
+            'count' => false,
+            'isExists' => true,
+        );
     }
 }

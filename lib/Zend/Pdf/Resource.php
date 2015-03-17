@@ -68,7 +68,7 @@ abstract class Zend_Pdf_Resource
     {
         if ($resource instanceof Zend_Pdf_Element_Object) {
             $this->_objectFactory = $resource->getFactory();
-            $this->_resource      = $resource;
+            $this->_resource = $resource;
 
             return;
         }
@@ -77,9 +77,9 @@ abstract class Zend_Pdf_Resource
 
         $this->_objectFactory = Zend_Pdf_ElementFactory::createFactory(1);
         if ($resource instanceof Zend_Pdf_Element) {
-            $this->_resource  = $this->_objectFactory->newObject($resource);
+            $this->_resource = $this->_objectFactory->newObject($resource);
         } else {
-            $this->_resource  = $this->_objectFactory->newStreamObject($resource);
+            $this->_resource = $this->_objectFactory->newStreamObject($resource);
         }
     }
 
@@ -89,7 +89,7 @@ abstract class Zend_Pdf_Resource
      */
     public function __clone()
     {
-        /** @todo implementation*/
+        /** @todo implementation */
 
 //        $factory = Zend_Pdf_ElementFactory::createFactory(1);
 //        $processed = array();
@@ -122,7 +122,7 @@ abstract class Zend_Pdf_Resource
      */
     public function cloneResource($factory, &$processed)
     {
-        /** @todo implementation*/
+        /** @todo implementation */
 
 //        // Clone dictionary object.
 //        // Do it explicitly to prevent sharing page attributes between different

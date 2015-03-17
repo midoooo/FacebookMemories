@@ -109,63 +109,6 @@ class Zend_Http_Header_SetCookie
     protected $httponly = null;
 
     /**
-     * Generate a new Cookie object from a cookie string
-     * (for example the value of the Set-Cookie HTTP header)
-     *
-     * @static
-     * @throws Zend_Http_Header_Exception_InvalidArgumentException
-     * @param  $headerLine
-     * @param  bool $bypassHeaderFieldName
-     * @return array|SetCookie
-     */
-    public static function fromString($headerLine, $bypassHeaderFieldName = false)
-    {
-        list($name, $value) = explode(': ', $headerLine, 2);
-
-        // check to ensure proper header type for this factory
-        if (strtolower($name) !== 'set-cookie') {
-            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid header line for Set-Cookie string: "' . $name . '"');
-        }
-
-        $multipleHeaders = preg_split('#(?<!Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s*#', $value);
-        $headers = array();
-        foreach ($multipleHeaders as $headerLine) {
-            $header = new self();
-            $keyValuePairs = preg_split('#;\s*#', $headerLine);
-            foreach ($keyValuePairs as $keyValue) {
-                if (strpos($keyValue, '=')) {
-                    list($headerKey, $headerValue) = preg_split('#=\s*#', $keyValue, 2);
-                } else {
-                    $headerKey = $keyValue;
-                    $headerValue = null;
-                }
-
-                // First K=V pair is always the cookie name and value
-                if ($header->getName() === NULL) {
-                    $header->setName($headerKey);
-                    $header->setValue($headerValue);
-                    continue;
-                }
-
-                // Process the remanining elements
-                switch (str_replace(array('-', '_'), '', strtolower($headerKey))) {
-                    case 'expires' : $header->setExpires($headerValue); break;
-                    case 'domain'  : $header->setDomain($headerValue); break;
-                    case 'path'    : $header->setPath($headerValue); break;
-                    case 'secure'  : $header->setSecure(true); break;
-                    case 'httponly': $header->setHttponly(true); break;
-                    case 'version' : $header->setVersion((int) $headerValue); break;
-                    case 'maxage'  : $header->setMaxAge((int) $headerValue); break;
-                    default:
-                        // Intentionally omitted
-                }
-            }
-            $headers[] = $header;
-        }
-        return count($headers) == 1 ? array_pop($headers) : $headers;
-    }
-
-    /**
      * Cookie object constructor
      *
      * @todo Add validation of each one of the parameters (legal domain, etc.)
@@ -223,65 +166,82 @@ class Zend_Http_Header_SetCookie
     }
 
     /**
-     * @return string 'Set-Cookie'
+     * Generate a new Cookie object from a cookie string
+     * (for example the value of the Set-Cookie HTTP header)
+     *
+     * @static
+     * @throws Zend_Http_Header_Exception_InvalidArgumentException
+     * @param  $headerLine
+     * @param  bool $bypassHeaderFieldName
+     * @return array|SetCookie
      */
-    public function getFieldName()
+    public static function fromString($headerLine, $bypassHeaderFieldName = false)
     {
-        return 'Set-Cookie';
+        list($name, $value) = explode(': ', $headerLine, 2);
+
+        // check to ensure proper header type for this factory
+        if (strtolower($name) !== 'set-cookie') {
+            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid header line for Set-Cookie string: "' . $name . '"');
+        }
+
+        $multipleHeaders = preg_split('#(?<!Sun|Mon|Tue|Wed|Thu|Fri|Sat),\s*#', $value);
+        $headers = array();
+        foreach ($multipleHeaders as $headerLine) {
+            $header = new self();
+            $keyValuePairs = preg_split('#;\s*#', $headerLine);
+            foreach ($keyValuePairs as $keyValue) {
+                if (strpos($keyValue, '=')) {
+                    list($headerKey, $headerValue) = preg_split('#=\s*#', $keyValue, 2);
+                } else {
+                    $headerKey = $keyValue;
+                    $headerValue = null;
+                }
+
+                // First K=V pair is always the cookie name and value
+                if ($header->getName() === NULL) {
+                    $header->setName($headerKey);
+                    $header->setValue($headerValue);
+                    continue;
+                }
+
+                // Process the remanining elements
+                switch (str_replace(array('-', '_'), '', strtolower($headerKey))) {
+                    case 'expires' :
+                        $header->setExpires($headerValue);
+                        break;
+                    case 'domain'  :
+                        $header->setDomain($headerValue);
+                        break;
+                    case 'path'    :
+                        $header->setPath($headerValue);
+                        break;
+                    case 'secure'  :
+                        $header->setSecure(true);
+                        break;
+                    case 'httponly':
+                        $header->setHttponly(true);
+                        break;
+                    case 'version' :
+                        $header->setVersion((int)$headerValue);
+                        break;
+                    case 'maxage'  :
+                        $header->setMaxAge((int)$headerValue);
+                        break;
+                    default:
+                        // Intentionally omitted
+                }
+            }
+            $headers[] = $header;
+        }
+        return count($headers) == 1 ? array_pop($headers) : $headers;
     }
 
     /**
-     * @throws Zend_Http_Header_Exception_RuntimeException
      * @return string
      */
-    public function getFieldValue()
+    public function getName()
     {
-        if ($this->getName() == '') {
-            throw new Zend_Http_Header_Exception_RuntimeException('A cookie name is required to generate a field value for this cookie');
-        }
-
-        $value = $this->getValue();
-        if (strpos($value,'"')!==false) {
-            $value = '"'.urlencode(str_replace('"', '', $value)).'"';
-        } else {
-            $value = urlencode($value);
-        }
-        $fieldValue = $this->getName() . '=' . $value;
-
-        $version = $this->getVersion();
-        if ($version!==null) {
-            $fieldValue .= '; Version=' . $version;
-        }
-
-        $maxAge = $this->getMaxAge();
-        if ($maxAge!==null) {
-            $fieldValue .= '; Max-Age=' . $maxAge;
-        }
-
-        $expires = $this->getExpires();
-        if ($expires) {
-            $fieldValue .= '; Expires=' . $expires;
-        }
-
-        $domain = $this->getDomain();
-        if ($domain) {
-            $fieldValue .= '; Domain=' . $domain;
-        }
-
-        $path = $this->getPath();
-        if ($path) {
-            $fieldValue .= '; Path=' . $path;
-        }
-
-        if ($this->isSecure()) {
-            $fieldValue .= '; Secure';
-        }
-
-        if ($this->isHttponly()) {
-            $fieldValue .= '; HttpOnly';
-        }
-
-        return $fieldValue;
+        return $this->name;
     }
 
     /**
@@ -299,173 +259,12 @@ class Zend_Http_Header_SetCookie
     }
 
     /**
-     * @return string
-     */
-    public function getName()
-    {
-        return $this->name;
-    }
-
-    /**
-     * @param string $value
-     */
-    public function setValue($value)
-    {
-        $this->value = $value;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getValue()
-    {
-        return $this->value;
-    }
-
-    /**
-     * Set version
-     *
-     * @param integer $version
-     */
-    public function setVersion($version)
-    {
-        if (!is_int($version)) {
-            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid Version number specified');
-        }
-        $this->version = $version;
-    }
-
-    /**
-     * Get version
-     *
-     * @return integer
-     */
-    public function getVersion()
-    {
-        return $this->version;
-    }
-
-    /**
-     * Set Max-Age
-     *
-     * @param integer $maxAge
-     */
-    public function setMaxAge($maxAge)
-    {
-        if (!is_int($maxAge) || ($maxAge<0)) {
-            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid Max-Age number specified');
-        }
-        $this->maxAge = $maxAge;
-    }
-
-    /**
-     * Get Max-Age
-     *
-     * @return integer
-     */
-    public function getMaxAge()
-    {
-        return $this->maxAge;
-    }
-
-    /**
-     * @param int $expires
-     * @return SetCookie
-     */
-    public function setExpires($expires)
-    {
-        if (!empty($expires)) {
-            if (is_string($expires)) {
-                $expires = strtotime($expires);
-            } elseif (!is_int($expires)) {
-                throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid expires time specified');
-            }
-            $this->expires = (int) $expires;
-        }
-        return $this;
-    }
-
-    /**
-     * @return int
-     */
-    public function getExpires($inSeconds = false)
-    {
-        if ($this->expires == null) {
-            return;
-        }
-        if ($inSeconds) {
-            return $this->expires;
-        }
-        return gmdate('D, d-M-Y H:i:s', $this->expires) . ' GMT';
-    }
-
-    /**
-     * @param string $domain
-     */
-    public function setDomain($domain)
-    {
-        $this->domain = $domain;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getDomain()
-    {
-        return $this->domain;
-    }
-
-    /**
-     * @param string $path
-     */
-    public function setPath($path)
-    {
-        $this->path = $path;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-    public function getPath()
-    {
-        return $this->path;
-    }
-
-    /**
-     * @param boolean $secure
-     */
-    public function setSecure($secure)
-    {
-        $this->secure = $secure;
-        return $this;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function isSecure()
-    {
-        return $this->secure;
-    }
-
-    /**
      * @param bool $httponly
      */
     public function setHttponly($httponly)
     {
         $this->httponly = $httponly;
         return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isHttponly()
-    {
-        return $this->httponly;
     }
 
     /**
@@ -509,7 +308,7 @@ class Zend_Http_Header_SetCookie
             return false;
         }
 
-        if ($this->secure && $this->isSecure()!==$isSecure) {
+        if ($this->secure && $this->isSecure() !== $isSecure) {
             return false;
         }
 
@@ -517,14 +316,229 @@ class Zend_Http_Header_SetCookie
 
     }
 
-    public function toString()
+    /**
+     * @return string
+     */
+    public function getDomain()
     {
-        return $this->getFieldName() . ': ' . $this->getFieldValue();
+        return $this->domain;
+    }
+
+    /**
+     * @param string $domain
+     */
+    public function setDomain($domain)
+    {
+        $this->domain = $domain;
+        return $this;
+    }
+
+    /**
+     * @return string
+     */
+    public function getPath()
+    {
+        return $this->path;
+    }
+
+    /**
+     * @param string $path
+     */
+    public function setPath($path)
+    {
+        $this->path = $path;
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function isSecure()
+    {
+        return $this->secure;
+    }
+
+    /**
+     * @param boolean $secure
+     */
+    public function setSecure($secure)
+    {
+        $this->secure = $secure;
+        return $this;
     }
 
     public function __toString()
     {
         return $this->toString();
+    }
+
+    public function toString()
+    {
+        return $this->getFieldName() . ': ' . $this->getFieldValue();
+    }
+
+    /**
+     * @return string 'Set-Cookie'
+     */
+    public function getFieldName()
+    {
+        return 'Set-Cookie';
+    }
+
+    /**
+     * @throws Zend_Http_Header_Exception_RuntimeException
+     * @return string
+     */
+    public function getFieldValue()
+    {
+        if ($this->getName() == '') {
+            throw new Zend_Http_Header_Exception_RuntimeException('A cookie name is required to generate a field value for this cookie');
+        }
+
+        $value = $this->getValue();
+        if (strpos($value, '"') !== false) {
+            $value = '"' . urlencode(str_replace('"', '', $value)) . '"';
+        } else {
+            $value = urlencode($value);
+        }
+        $fieldValue = $this->getName() . '=' . $value;
+
+        $version = $this->getVersion();
+        if ($version !== null) {
+            $fieldValue .= '; Version=' . $version;
+        }
+
+        $maxAge = $this->getMaxAge();
+        if ($maxAge !== null) {
+            $fieldValue .= '; Max-Age=' . $maxAge;
+        }
+
+        $expires = $this->getExpires();
+        if ($expires) {
+            $fieldValue .= '; Expires=' . $expires;
+        }
+
+        $domain = $this->getDomain();
+        if ($domain) {
+            $fieldValue .= '; Domain=' . $domain;
+        }
+
+        $path = $this->getPath();
+        if ($path) {
+            $fieldValue .= '; Path=' . $path;
+        }
+
+        if ($this->isSecure()) {
+            $fieldValue .= '; Secure';
+        }
+
+        if ($this->isHttponly()) {
+            $fieldValue .= '; HttpOnly';
+        }
+
+        return $fieldValue;
+    }
+
+    /**
+     * @return string
+     */
+    public function getValue()
+    {
+        return $this->value;
+    }
+
+    /**
+     * @param string $value
+     */
+    public function setValue($value)
+    {
+        $this->value = $value;
+        return $this;
+    }
+
+    /**
+     * Get version
+     *
+     * @return integer
+     */
+    public function getVersion()
+    {
+        return $this->version;
+    }
+
+    /**
+     * Set version
+     *
+     * @param integer $version
+     */
+    public function setVersion($version)
+    {
+        if (!is_int($version)) {
+            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid Version number specified');
+        }
+        $this->version = $version;
+    }
+
+    /**
+     * Get Max-Age
+     *
+     * @return integer
+     */
+    public function getMaxAge()
+    {
+        return $this->maxAge;
+    }
+
+    /**
+     * Set Max-Age
+     *
+     * @param integer $maxAge
+     */
+    public function setMaxAge($maxAge)
+    {
+        if (!is_int($maxAge) || ($maxAge < 0)) {
+            throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid Max-Age number specified');
+        }
+        $this->maxAge = $maxAge;
+    }
+
+    /**
+     * @return int
+     */
+    public function getExpires($inSeconds = false)
+    {
+        if ($this->expires == null) {
+            return;
+        }
+        if ($inSeconds) {
+            return $this->expires;
+        }
+        return gmdate('D, d-M-Y H:i:s', $this->expires) . ' GMT';
+    }
+
+    /**
+     * @param int $expires
+     * @return SetCookie
+     */
+    public function setExpires($expires)
+    {
+        if (!empty($expires)) {
+            if (is_string($expires)) {
+                $expires = strtotime($expires);
+            } elseif (!is_int($expires)) {
+                throw new Zend_Http_Header_Exception_InvalidArgumentException('Invalid expires time specified');
+            }
+            $this->expires = (int)$expires;
+        }
+        return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isHttponly()
+    {
+        return $this->httponly;
     }
 
     public function toStringMultipleHeaders(array $headers)

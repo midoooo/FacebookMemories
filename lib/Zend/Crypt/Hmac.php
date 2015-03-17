@@ -40,19 +40,22 @@ class Zend_Crypt_Hmac extends Zend_Crypt
 {
 
     /**
+     * Constants representing the output mode of the hash algorithm
+     */
+    const STRING = 'string';
+    const BINARY = 'binary';
+    /**
      * The key to use for the hash
      *
      * @var string
      */
     protected static $_key = null;
-
     /**
      * pack() format to be used for current hashing method
      *
      * @var string
      */
     protected static $_packFormat = null;
-
     /**
      * Hashing algorithm; can be the md5/sha1 functions or any algorithm name
      * listed in the output of PHP 5.1.2+ hash_algos().
@@ -60,21 +63,14 @@ class Zend_Crypt_Hmac extends Zend_Crypt
      * @var string
      */
     protected static $_hashAlgorithm = 'md5';
-
     /**
      * List of algorithms supported my mhash()
      *
      * @var array
      */
-    protected static $_supportedMhashAlgorithms = array('adler32',' crc32', 'crc32b', 'gost',
-            'haval128', 'haval160', 'haval192', 'haval256', 'md4', 'md5', 'ripemd160',
-            'sha1', 'sha256', 'tiger', 'tiger128', 'tiger160');
-
-    /**
-     * Constants representing the output mode of the hash algorithm
-     */
-    const STRING = 'string';
-    const BINARY = 'binary';
+    protected static $_supportedMhashAlgorithms = array('adler32', ' crc32', 'crc32b', 'gost',
+        'haval128', 'haval160', 'haval192', 'haval256', 'md4', 'md5', 'ripemd160',
+        'sha1', 'sha256', 'tiger', 'tiger128', 'tiger160');
 
     /**
      * Performs a HMAC computation given relevant details such as Key, Hashing
@@ -171,8 +167,7 @@ class Zend_Crypt_Hmac extends Zend_Crypt
      */
     protected static function _getMhashDefinition($hashAlgorithm)
     {
-        for ($i = 0; $i <= mhash_count(); $i++)
-        {
+        for ($i = 0; $i <= mhash_count(); $i++) {
             $types[mhash_get_hash_name($i)] = $i;
         }
         return $types[strtoupper($hashAlgorithm)];

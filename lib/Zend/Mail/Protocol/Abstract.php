@@ -127,7 +127,7 @@ abstract class Zend_Mail_Protocol_Abstract
     /**
      * Constructor.
      *
-     * @param  string  $host OPTIONAL Hostname of remote connection (default: 127.0.0.1)
+     * @param  string $host OPTIONAL Hostname of remote connection (default: 127.0.0.1)
      * @param  integer $port OPTIONAL Port number (default: null)
      * @throws Zend_Mail_Protocol_Exception
      * @return void
@@ -161,16 +161,16 @@ abstract class Zend_Mail_Protocol_Abstract
     }
 
     /**
-     * Set the maximum log size
+     * Disconnect from remote host and free resource
      *
-     * @param integer $maximumLog Maximum log size
      * @return void
      */
-    public function setMaximumLog($maximumLog)
+    protected function _disconnect()
     {
-        $this->_maximumLog = (int) $maximumLog;
+        if (is_resource($this->_socket)) {
+            fclose($this->_socket);
+        }
     }
-
 
     /**
      * Get the maximum log size
@@ -182,6 +182,16 @@ abstract class Zend_Mail_Protocol_Abstract
         return $this->_maximumLog;
     }
 
+    /**
+     * Set the maximum log size
+     *
+     * @param integer $maximumLog Maximum log size
+     * @return void
+     */
+    public function setMaximumLog($maximumLog)
+    {
+        $this->_maximumLog = (int)$maximumLog;
+    }
 
     /**
      * Create a connection to the remote host
@@ -189,7 +199,6 @@ abstract class Zend_Mail_Protocol_Abstract
      * Concrete adapters for this class will implement their own unique connect scripts, using the _connect() method to create the socket resource.
      */
     abstract public function connect();
-
 
     /**
      * Retrieve the last client request
@@ -201,7 +210,6 @@ abstract class Zend_Mail_Protocol_Abstract
         return $this->_request;
     }
 
-
     /**
      * Retrieve the last server response
      *
@@ -211,7 +219,6 @@ abstract class Zend_Mail_Protocol_Abstract
     {
         return $this->_response;
     }
-
 
     /**
      * Retrieve the transaction log
@@ -223,7 +230,6 @@ abstract class Zend_Mail_Protocol_Abstract
         return implode('', $this->_log);
     }
 
-
     /**
      * Reset the transaction log
      *
@@ -232,21 +238,6 @@ abstract class Zend_Mail_Protocol_Abstract
     public function resetLog()
     {
         $this->_log = array();
-    }
-
-    /**
-     * Add the transaction log
-     *
-     * @param  string new transaction
-     * @return void
-     */
-    protected function _addLog($value)
-    {
-        if ($this->_maximumLog >= 0 && count($this->_log) >= $this->_maximumLog) {
-            array_shift($this->_log);
-        }
-
-        $this->_log[] = $value;
     }
 
     /**
@@ -288,19 +279,16 @@ abstract class Zend_Mail_Protocol_Abstract
         return $result;
     }
 
-
     /**
-     * Disconnect from remote host and free resource
+     * Set stream timeout
      *
-     * @return void
+     * @param integer $timeout
+     * @return boolean
      */
-    protected function _disconnect()
+    protected function _setStreamTimeout($timeout)
     {
-        if (is_resource($this->_socket)) {
-            fclose($this->_socket);
-        }
+        return stream_set_timeout($this->_socket, $timeout);
     }
-
 
     /**
      * Send the given request followed by a LINEEND to the server.
@@ -337,6 +325,65 @@ abstract class Zend_Mail_Protocol_Abstract
         return $result;
     }
 
+    /**
+     * Add the transaction log
+     *
+     * @param  string new transaction
+     * @return void
+     */
+    protected function _addLog($value)
+    {
+        if ($this->_maximumLog >= 0 && count($this->_log) >= $this->_maximumLog) {
+            array_shift($this->_log);
+        }
+
+        $this->_log[] = $value;
+    }
+
+    /**
+     * Parse server response for successful codes
+     *
+     * Read the response from the stream and check for expected return code.
+     * Throws a Zend_Mail_Protocol_Exception if an unexpected code is returned.
+     *
+     * @param  string|array $code One or more codes that indicate a successful response
+     * @throws Zend_Mail_Protocol_Exception
+     * @return string Last line of response string
+     */
+    protected function _expect($code, $timeout = null)
+    {
+        $this->_response = array();
+        $cmd = '';
+        $more = '';
+        $msg = '';
+        $errMsg = '';
+
+        if (!is_array($code)) {
+            $code = array($code);
+        }
+
+        do {
+            $this->_response[] = $result = $this->_receive($timeout);
+            list($cmd, $more, $msg) = preg_split('/([\s-]+)/', $result, 2, PREG_SPLIT_DELIM_CAPTURE);
+
+            if ($errMsg !== '') {
+                $errMsg .= ' ' . $msg;
+            } elseif ($cmd === null || !in_array($cmd, $code)) {
+                $errMsg = $msg;
+            }
+
+        } while (strpos($more, '-') === 0); // The '-' message prefix indicates an information string instead of a response string.
+
+        if ($errMsg !== '') {
+            /**
+             * @see Zend_Mail_Protocol_Exception
+             */
+            require_once 'Zend/Mail/Protocol/Exception.php';
+            throw new Zend_Mail_Protocol_Exception($errMsg, $cmd);
+        }
+
+        return $msg;
+    }
 
     /**
      * Get a line from the stream.
@@ -386,62 +433,5 @@ abstract class Zend_Mail_Protocol_Abstract
         }
 
         return $reponse;
-    }
-
-
-    /**
-     * Parse server response for successful codes
-     *
-     * Read the response from the stream and check for expected return code.
-     * Throws a Zend_Mail_Protocol_Exception if an unexpected code is returned.
-     *
-     * @param  string|array $code One or more codes that indicate a successful response
-     * @throws Zend_Mail_Protocol_Exception
-     * @return string Last line of response string
-     */
-    protected function _expect($code, $timeout = null)
-    {
-        $this->_response = array();
-        $cmd  = '';
-        $more = '';
-        $msg  = '';
-        $errMsg = '';
-
-        if (!is_array($code)) {
-            $code = array($code);
-        }
-
-        do {
-            $this->_response[] = $result = $this->_receive($timeout);
-            list($cmd, $more, $msg) = preg_split('/([\s-]+)/', $result, 2, PREG_SPLIT_DELIM_CAPTURE);
-
-            if ($errMsg !== '') {
-                $errMsg .= ' ' . $msg;
-            } elseif ($cmd === null || !in_array($cmd, $code)) {
-                $errMsg =  $msg;
-            }
-
-        } while (strpos($more, '-') === 0); // The '-' message prefix indicates an information string instead of a response string.
-
-        if ($errMsg !== '') {
-            /**
-             * @see Zend_Mail_Protocol_Exception
-             */
-            require_once 'Zend/Mail/Protocol/Exception.php';
-            throw new Zend_Mail_Protocol_Exception($errMsg, $cmd);
-        }
-
-        return $msg;
-    }
-
-    /**
-     * Set stream timeout
-     *
-     * @param integer $timeout
-     * @return boolean
-     */
-    protected function _setStreamTimeout($timeout)
-    {
-       return stream_set_timeout($this->_socket, $timeout);
     }
 }

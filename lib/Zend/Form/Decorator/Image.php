@@ -60,15 +60,42 @@ class Zend_Form_Decorator_Image extends Zend_Form_Decorator_Abstract
     protected $_tag;
 
     /**
-     * Set HTML tag with which to surround label
+     * Render a form image
      *
-     * @param  string $tag
-     * @return Zend_Form_Decorator_Image
+     * @param  string $content
+     * @return string
      */
-    public function setTag($tag)
+    public function render($content)
     {
-        $this->_tag = (string) $tag;
-        return $this;
+        $element = $this->getElement();
+        $view = $element->getView();
+        if (null === $view) {
+            return $content;
+        }
+
+        $tag = $this->getTag();
+        $placement = $this->getPlacement();
+        $separator = $this->getSeparator();
+        $name = $element->getFullyQualifiedName();
+        $attribs = $this->getAttribs();
+        $attribs['id'] = $element->getId();
+
+        $image = $view->formImage($name, $element->getImageValue(), $attribs);
+
+        if (null !== $tag) {
+            require_once 'Zend/Form/Decorator/HtmlTag.php';
+            $decorator = new Zend_Form_Decorator_HtmlTag();
+            $decorator->setOptions(array('tag' => $tag));
+            $image = $decorator->render($image);
+        }
+
+        switch ($placement) {
+            case self::PREPEND:
+                return $image . $separator . $content;
+            case self::APPEND:
+            default:
+                return $content . $separator . $image;
+        }
     }
 
     /**
@@ -88,6 +115,18 @@ class Zend_Form_Decorator_Image extends Zend_Form_Decorator_Abstract
         }
 
         return $this->_tag;
+    }
+
+    /**
+     * Set HTML tag with which to surround label
+     *
+     * @param  string $tag
+     * @return Zend_Form_Decorator_Image
+     */
+    public function setTag($tag)
+    {
+        $this->_tag = (string)$tag;
+        return $this;
     }
 
     /**
@@ -111,44 +150,5 @@ class Zend_Form_Decorator_Image extends Zend_Form_Decorator_Abstract
         }
 
         return $attribs;
-    }
-
-    /**
-     * Render a form image
-     *
-     * @param  string $content
-     * @return string
-     */
-    public function render($content)
-    {
-        $element = $this->getElement();
-        $view    = $element->getView();
-        if (null === $view) {
-            return $content;
-        }
-
-        $tag           = $this->getTag();
-        $placement     = $this->getPlacement();
-        $separator     = $this->getSeparator();
-        $name          = $element->getFullyQualifiedName();
-        $attribs       = $this->getAttribs();
-        $attribs['id'] = $element->getId();
-
-        $image = $view->formImage($name, $element->getImageValue(), $attribs);
-
-        if (null !== $tag) {
-            require_once 'Zend/Form/Decorator/HtmlTag.php';
-            $decorator = new Zend_Form_Decorator_HtmlTag();
-            $decorator->setOptions(array('tag' => $tag));
-            $image = $decorator->render($image);
-        }
-
-        switch ($placement) {
-            case self::PREPEND:
-                return $image . $separator . $content;
-            case self::APPEND:
-            default:
-                return $content . $separator . $image;
-        }
     }
 }

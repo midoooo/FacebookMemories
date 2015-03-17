@@ -114,9 +114,9 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
     /**
      * Constructor.
      *
-     * @param  string  $host
+     * @param  string $host
      * @param  integer $port
-     * @param  array   $config
+     * @param  array $config
      * @return void
      * @throws Zend_Mail_Protocol_Exception
      */
@@ -164,7 +164,7 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
      */
     public function connect()
     {
-        return $this->_connect($this->_transport . '://' . $this->_host . ':'. $this->_port);
+        return $this->_connect($this->_transport . '://' . $this->_host . ':' . $this->_port);
     }
 
 
@@ -239,6 +239,34 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         }
     }
 
+    /**
+     * Start mail session
+     *
+     * @return void
+     */
+    protected function _startSession()
+    {
+        $this->_sess = true;
+    }
+
+    /**
+     * Default authentication method
+     *
+     * This default method is implemented by AUTH adapters to properly authenticate to a remote host.
+     *
+     * @throws Zend_Mail_Protocol_Exception
+     * @return void
+     */
+    public function auth()
+    {
+        if ($this->_auth === true) {
+            /**
+             * @see Zend_Mail_Protocol_Exception
+             */
+            require_once 'Zend/Mail/Protocol/Exception.php';
+            throw new Zend_Mail_Protocol_Exception('Already authenticated for this session');
+        }
+    }
 
     /**
      * Issues MAIL command
@@ -266,7 +294,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_data = false;
     }
 
-
     /**
      * Issues RCPT command
      *
@@ -289,7 +316,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_expect(array(250, 251), 300); // Timeout set for 5 minutes as per RFC 2821 4.5.3.2
         $this->_rcpt = true;
     }
-
 
     /**
      * Issues DATA command
@@ -325,7 +351,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_data = true;
     }
 
-
     /**
      * Issues the RSET command and validates answer
      *
@@ -344,7 +369,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_data = false;
     }
 
-
     /**
      * Issues the NOOP command and validates answer
      *
@@ -357,7 +381,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_send('NOOP');
         $this->_expect(250, 300); // Timeout set for 5 minutes as per RFC 2821 4.5.3.2
     }
-
 
     /**
      * Issues the VRFY command and validates answer
@@ -373,7 +396,6 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         $this->_expect(array(250, 251, 252), 300); // Timeout set for 5 minutes as per RFC 2821 4.5.3.2
     }
 
-
     /**
      * Issues the QUIT command and clears the current session
      *
@@ -388,26 +410,15 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
         }
     }
 
-
     /**
-     * Default authentication method
+     * Stop mail session
      *
-     * This default method is implemented by AUTH adapters to properly authenticate to a remote host.
-     *
-     * @throws Zend_Mail_Protocol_Exception
      * @return void
      */
-    public function auth()
+    protected function _stopSession()
     {
-        if ($this->_auth === true) {
-            /**
-             * @see Zend_Mail_Protocol_Exception
-             */
-            require_once 'Zend/Mail/Protocol/Exception.php';
-            throw new Zend_Mail_Protocol_Exception('Already authenticated for this session');
-        }
+        $this->_sess = false;
     }
-
 
     /**
      * Closes connection
@@ -417,27 +428,5 @@ class Zend_Mail_Protocol_Smtp extends Zend_Mail_Protocol_Abstract
     public function disconnect()
     {
         $this->_disconnect();
-    }
-
-
-    /**
-     * Start mail session
-     *
-     * @return void
-     */
-    protected function _startSession()
-    {
-        $this->_sess = true;
-    }
-
-
-    /**
-     * Stop mail session
-     *
-     * @return void
-     */
-    protected function _stopSession()
-    {
-        $this->_sess = false;
     }
 }

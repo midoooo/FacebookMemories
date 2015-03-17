@@ -1,8 +1,8 @@
 <?php
 /*error_reporting(E_ALL);
 ini_set('display_errors', 1);*/
-require_once ('fbapi.php');
-require_once ('lib/Zend/Loader.php');
+require_once('fbapi.php');
+require_once('lib/Zend/Loader.php');
 Zend_Loader::loadClass('Zend_Gdata_Photos');
 Zend_Loader::loadClass('Zend_Gdata_ClientLogin');
 Zend_Loader::loadClass('Zend_Gdata_AuthSub');
@@ -24,29 +24,25 @@ define('DB_NAME', 'rtcamp');*/
 //echo DB_HOST." ".DB_PORT. " ". DB_USER. " ". DB_PASS;
 
 
-
-
-
-
-if (isset( $_GET['token']) && isset($_SESSION['userid'])) {
-    $userid=$_SESSION['userid'];
+if (isset($_GET['token']) && isset($_SESSION['userid'])) {
+    $userid = $_SESSION['userid'];
     $_SESSION['sessionToken'] = Zend_Gdata_AuthSub::getAuthSubSessionToken($_GET['token']);
-    $sessiontoken=$_SESSION['sessionToken'];
+    $sessiontoken = $_SESSION['sessionToken'];
     $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, "", DB_PORT) or die("Error: " . mysqli_error($conn));
     mysqli_select_db($conn, DB_NAME) or die("Error: " . mysqli_error($conn));
     if ($conn->connect_error) {
 
         //header("Location: index.php");
     } else {
-        $sql="SELECT * FROM user_details where user_id=".$userid;
+        $sql = "SELECT * FROM user_details where user_id=" . $userid;
         $result = $conn->query($sql);
         if ($result->num_rows > 0) {
-            $sql='DELETE FROM user_details where user_id='.$userid;
-            if ($conn->query($sql)==false) {
+            $sql = 'DELETE FROM user_details where user_id=' . $userid;
+            if ($conn->query($sql) == false) {
                 header("Location: index.php");
             }
         }
-        $sql="insert into user_details values(".$userid.",'".$sessiontoken."')";
+        $sql = "insert into user_details values(" . $userid . ",'" . $sessiontoken . "')";
         //echo $sql;
         if ($conn->query($sql) == true) {
             $conn->close();
@@ -72,35 +68,37 @@ class Picasaapi
      * @param $albumid facebook album id
      * @return string returns album name
      */
-    function moveAlbumToPicasa($albumid){
-        try{
-            $fbapi=new Fbapiclass();
-            $albumname=$fbapi->getAlbumNameFromId($albumid);
-            if ($albumname=='Invalid albumid') {
+    function moveAlbumToPicasa($albumid)
+    {
+        try {
+            $fbapi = new Fbapiclass();
+            $albumname = $fbapi->getAlbumNameFromId($albumid);
+            if ($albumname == 'Invalid albumid') {
                 throw new Exception("Invalid albumid");
             }
-            $images=$fbapi->getImageAndNameListFromAlbumId($albumid);
-            if ($images=='Invalid albumid') {
+            $images = $fbapi->getImageAndNameListFromAlbumId($albumid);
+            if ($images == 'Invalid albumid') {
                 throw new Exception("Invalid albumid");
             }
-            $client=$this->getAuthSubHttpClient();
-            $gp=new Zend_Gdata_Photos($client, "FacebookMemories");
+            $client = $this->getAuthSubHttpClient();
+            $gp = new Zend_Gdata_Photos($client, "FacebookMemories");
 
             $entry = new Zend_Gdata_Photos_AlbumEntry();
             $entry->setTitle($gp->newTitle($albumname));
             $entry->setSummary($gp->newSummary($albumname));
             $createdEntry = $gp->insertAlbumEntry($entry);
-            $picasaalbumid=$createdEntry->getGphotoId();
-            for ($i=0;$i<sizeof($images);$i++) {
-                try{
-                    $this->uploadPicToPicasa($picasaalbumid,$images[$i][0],$images[$i][1]);
-                } catch(Exception $e)
-                {;}
+            $picasaalbumid = $createdEntry->getGphotoId();
+            for ($i = 0; $i < sizeof($images); $i++) {
+                try {
+                    $this->uploadPicToPicasa($picasaalbumid, $images[$i][0], $images[$i][1]);
+                } catch (Exception $e) {
+                    ;
+                }
 
             }
             return $albumname;
 
-        }catch (Exception $e){
+        } catch (Exception $e) {
             return "Invalid albumid";
         }
     }
@@ -112,20 +110,20 @@ class Picasaapi
      * @param $url - the location of the image
      * @param $photoCaption - caption of the image
      */
-    function uploadPicToPicasa($picasaalbumid,$url,$photoCaption)
+    function uploadPicToPicasa($picasaalbumid, $url, $photoCaption)
     {
-        try{
+        try {
             $username = "default";
             $content = file_get_contents($url);
-            file_put_contents("tempimages/".basename($url, ".jpg").PHP_EOL, $content);
-            $filename="tempimages/".basename($url, ".jpg").PHP_EOL;
-            if ($photoCaption==null) {
-                $photoCaption="Uploaded from Facebook Memories!";
+            file_put_contents("tempimages/" . basename($url, ".jpg") . PHP_EOL, $content);
+            $filename = "tempimages/" . basename($url, ".jpg") . PHP_EOL;
+            if ($photoCaption == null) {
+                $photoCaption = "Uploaded from Facebook Memories!";
             }
             $photoName = $photoCaption;
             $albumId = $picasaalbumid;
-            $client=$this->getAuthSubHttpClient();
-            $gp=new Zend_Gdata_Photos($client, "FacebookMemories");
+            $client = $this->getAuthSubHttpClient();
+            $gp = new Zend_Gdata_Photos($client, "FacebookMemories");
             $fd = $gp->newMediaFileSource($filename);
             $fd->setContentType("image/jpeg");
 
@@ -146,12 +144,11 @@ class Picasaapi
             // We insert the photo, and the server returns the entry representing
             // that photo after it is uploaded
             $insertedEntry = $gp->insertPhotoEntry($photoEntry, $albumQuery->getQueryUrl());
-            system("rm -rf ".escapeshellarg($filename));
-        }catch(Exception $e){
+            system("rm -rf " . escapeshellarg($filename));
+        } catch (Exception $e) {
             echo "Invalid Request";
         }
 
-        
 
     }
 
@@ -178,7 +175,7 @@ class Picasaapi
      */
     function getSessionTokenFromDb($toprint)
     {
-        try{
+        try {
             $conn = mysqli_connect(DB_HOST, DB_USER, DB_PASS, "", DB_PORT) or die("Error: " . mysqli_error($conn));
             mysqli_select_db($conn, DB_NAME) or die("Error: " . mysqli_error($conn));
             if ($conn->connect_error) {
@@ -187,14 +184,14 @@ class Picasaapi
 
 
                 if (isset($_SESSION['userid'])) {
-                    $sql="select session_token from user_details where user_id=".$_SESSION['userid'];
+                    $sql = "select session_token from user_details where user_id=" . $_SESSION['userid'];
                     $result = $conn->query($sql);
                     if ($result->num_rows > 0) {
-                        $rows=array();
-                        while ($r=$result->fetch_assoc()) {
-                            $rows[]=$r;
+                        $rows = array();
+                        while ($r = $result->fetch_assoc()) {
+                            $rows[] = $r;
                         }
-                        $_SESSION['sessionToken']=$rows[0]['session_token'];
+                        $_SESSION['sessionToken'] = $rows[0]['session_token'];
                         if ($toprint) {
                             echo 1;
                         }
@@ -205,7 +202,7 @@ class Picasaapi
                     }
                 }
             }
-        }catch(Exception $e){
+        } catch (Exception $e) {
             echo $e->getMessage();
         }
     }
@@ -224,25 +221,22 @@ class Picasaapi
 }
 
 
-
 //used for getting ajax calls
-if(isset($_POST['func'])){
+if (isset($_POST['func'])) {
 
 
-    $picasaobj=new Picasaapi();
+    $picasaobj = new Picasaapi();
     //Gets if the user has connected his picasa account
-    if($_POST['func']=='getPicasaStatus'){
+    if ($_POST['func'] == 'getPicasaStatus') {
         $picasaobj->getSessionTokenFromDb(true);
-    }
-    //
-    elseif($_POST['func']=='getPicasaUrl'){
+    } //
+    elseif ($_POST['func'] == 'getPicasaUrl') {
         echo $picasaobj->getAuthSubUrl();
-    }
-    elseif($_POST['func']=='moveAlbumToPicasa' && isset($_POST['funcval'])){
+    } elseif ($_POST['func'] == 'moveAlbumToPicasa' && isset($_POST['funcval'])) {
         mkdir("tempimages");
-        $albumids=$_POST['funcval'];
-        foreach($albumids as $albumid){
-            $albumname=$picasaobj->moveAlbumToPicasa($albumid);
+        $albumids = $_POST['funcval'];
+        foreach ($albumids as $albumid) {
+            $albumname = $picasaobj->moveAlbumToPicasa($albumid);
 
 
         }

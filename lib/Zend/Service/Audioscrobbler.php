@@ -75,6 +75,20 @@ class Zend_Service_Audioscrobbler
     }
 
     /**
+     * Generic set action for a field in the parameters being used
+     *
+     * @param  string $field name of field to set
+     * @param  string $value value to assign to the named field
+     * @return Zend_Service_Audioscrobbler Provides a fluent interface
+     */
+    public function set($field, $value)
+    {
+        $this->_params[$field] = urlencode($value);
+
+        return $this;
+    }
+
+    /**
      * Set Http Client
      *
      * @param Zend_Http_Client $client
@@ -85,26 +99,14 @@ class Zend_Service_Audioscrobbler
     }
 
     /**
-     * Get current http client.
+     * Utility function to get Audioscrobbler profile information (eg: Name, Gender)
      *
-     * @return Zend_Http_Client
+     * @return array containing information
      */
-    public function getHttpClient()
+    public function userGetProfileInformation()
     {
-        if($this->_client == null) {
-            $this->lazyLoadHttpClient();
-        }
-        return $this->_client;
-    }
-
-    /**
-     * Lazy load Http Client if none is instantiated yet.
-     *
-     * @return void
-     */
-    protected function lazyLoadHttpClient()
-    {
-        $this->_client = new Zend_Http_Client();
+        $service = "/{$this->get('version')}/user/{$this->get('user')}/profile.xml";
+        return $this->_getInfo($service);
     }
 
     /**
@@ -123,24 +125,10 @@ class Zend_Service_Audioscrobbler
     }
 
     /**
-     * Generic set action for a field in the parameters being used
-     *
-     * @param  string $field name of field to set
-     * @param  string $value value to assign to the named field
-     * @return Zend_Service_Audioscrobbler Provides a fluent interface
-     */
-    public function set($field, $value)
-    {
-        $this->_params[$field] = urlencode($value);
-
-        return $this;
-    }
-
-    /**
      * Protected method that queries REST service and returns SimpleXML response set
      *
      * @param  string $service name of Audioscrobbler service file we're accessing
-     * @param  string $params  parameters that we send to the service if needded
+     * @param  string $params parameters that we send to the service if needded
      * @throws Zend_Http_Client_Exception
      * @throws Zend_Service_Exception
      * @return SimpleXMLElement result set
@@ -148,8 +136,8 @@ class Zend_Service_Audioscrobbler
      */
     protected function _getInfo($service, $params = null)
     {
-        $service = (string) $service;
-        $params  = (string) $params;
+        $service = (string)$service;
+        $params = (string)$params;
 
         if ($params === '') {
             $this->getHttpClient()->setUri("http://ws.audioscrobbler.com{$service}");
@@ -157,7 +145,7 @@ class Zend_Service_Audioscrobbler
             $this->getHttpClient()->setUri("http://ws.audioscrobbler.com{$service}?{$params}");
         }
 
-        $response     = $this->getHttpClient()->request();
+        $response = $this->getHttpClient()->request();
         $responseBody = $response->getBody();
 
         if (preg_match('/No such path/', $responseBody)) {
@@ -189,7 +177,7 @@ class Zend_Service_Audioscrobbler
              */
             require_once 'Zend/Service/Exception.php';
             $exception = new Zend_Service_Exception('Response failed to load with SimpleXML');
-            $exception->error    = $this->_error;
+            $exception->error = $this->_error;
             $exception->response = $responseBody;
             throw $exception;
         }
@@ -200,21 +188,33 @@ class Zend_Service_Audioscrobbler
     }
 
     /**
-    * Utility function to get Audioscrobbler profile information (eg: Name, Gender)
+     * Get current http client.
      *
-    * @return array containing information
-    */
-    public function userGetProfileInformation()
+     * @return Zend_Http_Client
+     */
+    public function getHttpClient()
     {
-        $service = "/{$this->get('version')}/user/{$this->get('user')}/profile.xml";
-        return $this->_getInfo($service);
+        if ($this->_client == null) {
+            $this->lazyLoadHttpClient();
+        }
+        return $this->_client;
+    }
+
+    /**
+     * Lazy load Http Client if none is instantiated yet.
+     *
+     * @return void
+     */
+    protected function lazyLoadHttpClient()
+    {
+        $this->_client = new Zend_Http_Client();
     }
 
     /**
      * Utility function get this user's 50 most played artists
      *
      * @return array containing info
-    */
+     */
     public function userGetTopArtists()
     {
         $service = "/{$this->get('version')}/user/{$this->get('user')}/topartists.xml";
@@ -225,7 +225,7 @@ class Zend_Service_Audioscrobbler
      * Utility function to get this user's 50 most played albums
      *
      * @return SimpleXMLElement object containing result set
-    */
+     */
     public function userGetTopAlbums()
     {
         $service = "/{$this->get('version')}/user/{$this->get('user')}/topalbums.xml";
@@ -235,7 +235,7 @@ class Zend_Service_Audioscrobbler
     /**
      * Utility function to get this user's 50 most played tracks
      * @return SimpleXML object containing resut set
-    */
+     */
     public function userGetTopTracks()
     {
         $service = "/{$this->get('version')}/user/{$this->get('user')}/toptracks.xml";
@@ -631,44 +631,23 @@ class Zend_Service_Audioscrobbler
     }
 
     /**
-     * Saves the provided error information to this instance
-     *
-     * @param  integer $errno
-     * @param  string  $errstr
-     * @param  string  $errfile
-     * @param  integer $errline
-     * @param  array   $errcontext
-     * @return void
-     */
-    protected function _errorHandler($errno, $errstr, $errfile, $errline, array $errcontext)
-    {
-        $this->_error = array(
-            'errno'      => $errno,
-            'errstr'     => $errstr,
-            'errfile'    => $errfile,
-            'errline'    => $errline,
-            'errcontext' => $errcontext
-            );
-    }
-
-    /**
      * Call Intercept for set($name, $field)
      *
      * @param  string $method
-     * @param  array  $args
+     * @param  array $args
      * @return Zend_Service_Audioscrobbler
      */
     public function __call($method, $args)
     {
-        if(substr($method, 0, 3) !== "set") {
+        if (substr($method, 0, 3) !== "set") {
             require_once "Zend/Service/Exception.php";
             throw new Zend_Service_Exception(
-                "Method ".$method." does not exist in class Zend_Service_Audioscrobbler."
+                "Method " . $method . " does not exist in class Zend_Service_Audioscrobbler."
             );
         }
         $field = strtolower(substr($method, 3));
 
-        if(!is_array($args) || count($args) != 1) {
+        if (!is_array($args) || count($args) != 1) {
             require_once "Zend/Service/Exception.php";
             throw new Zend_Service_Exception(
                 "A value is required for setting a parameter field."
@@ -677,5 +656,26 @@ class Zend_Service_Audioscrobbler
         $this->set($field, $args[0]);
 
         return $this;
+    }
+
+    /**
+     * Saves the provided error information to this instance
+     *
+     * @param  integer $errno
+     * @param  string $errstr
+     * @param  string $errfile
+     * @param  integer $errline
+     * @param  array $errcontext
+     * @return void
+     */
+    protected function _errorHandler($errno, $errstr, $errfile, $errline, array $errcontext)
+    {
+        $this->_error = array(
+            'errno' => $errno,
+            'errstr' => $errstr,
+            'errfile' => $errfile,
+            'errline' => $errline,
+            'errcontext' => $errcontext
+        );
     }
 }

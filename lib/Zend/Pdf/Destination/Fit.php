@@ -51,7 +51,7 @@ class Zend_Pdf_Destination_Fit extends Zend_Pdf_Destination_Explicit
     /**
      * Create destination object
      *
-     * @param Zend_Pdf_Page|integer $page  Page object or page number
+     * @param Zend_Pdf_Page|integer $page Page object or page number
      * @return Zend_Pdf_Destination_Fit
      * @throws Zend_Pdf_Exception
      */

@@ -89,37 +89,6 @@ class Zend_Gdata_Calendar_EventEntry extends Zend_Gdata_Kind_EventEntry
         return $element;
     }
 
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-
-        switch ($absoluteNodeName) {
-            case $this->lookupNamespace('gCal') . ':' . 'sendEventNotifications';
-                $sendEventNotifications = new Zend_Gdata_Calendar_Extension_SendEventNotifications();
-                $sendEventNotifications->transferFromDOM($child);
-                $this->_sendEventNotifications = $sendEventNotifications;
-                break;
-            case $this->lookupNamespace('gCal') . ':' . 'timezone';
-                $timezone = new Zend_Gdata_Calendar_Extension_Timezone();
-                $timezone->transferFromDOM($child);
-                $this->_timezone = $timezone;
-                break;
-            case $this->lookupNamespace('atom') . ':' . 'link';
-                $link = new Zend_Gdata_Calendar_Extension_Link();
-                $link->transferFromDOM($child);
-                $this->_link[] = $link;
-                break;
-            case $this->lookupNamespace('gCal') . ':' . 'quickadd';
-                $quickadd = new Zend_Gdata_Calendar_Extension_QuickAdd();
-                $quickadd->transferFromDOM($child);
-                $this->_quickadd = $quickadd;
-                break;
-            default:
-                parent::takeChildFromDOM($child);
-                break;
-        }
-    }
-
     public function getSendEventNotifications()
     {
         return $this->_sendEventNotifications;
@@ -159,6 +128,37 @@ class Zend_Gdata_Calendar_EventEntry extends Zend_Gdata_Kind_EventEntry
     {
         $this->_quickadd = $value;
         return $this;
+    }
+
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('gCal') . ':' . 'sendEventNotifications';
+                $sendEventNotifications = new Zend_Gdata_Calendar_Extension_SendEventNotifications();
+                $sendEventNotifications->transferFromDOM($child);
+                $this->_sendEventNotifications = $sendEventNotifications;
+                break;
+            case $this->lookupNamespace('gCal') . ':' . 'timezone';
+                $timezone = new Zend_Gdata_Calendar_Extension_Timezone();
+                $timezone->transferFromDOM($child);
+                $this->_timezone = $timezone;
+                break;
+            case $this->lookupNamespace('atom') . ':' . 'link';
+                $link = new Zend_Gdata_Calendar_Extension_Link();
+                $link->transferFromDOM($child);
+                $this->_link[] = $link;
+                break;
+            case $this->lookupNamespace('gCal') . ':' . 'quickadd';
+                $quickadd = new Zend_Gdata_Calendar_Extension_QuickAdd();
+                $quickadd->transferFromDOM($child);
+                $this->_quickadd = $quickadd;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
     }
 
 }

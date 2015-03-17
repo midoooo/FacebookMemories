@@ -62,7 +62,7 @@ class Zend_View_Helper_PartialLoop extends Zend_View_Helper_Partial
         }
 
         if ((null === $model) && (null !== $module)) {
-            $model  = $module;
+            $model = $module;
             $module = null;
         }
 
@@ -85,7 +85,7 @@ class Zend_View_Helper_PartialLoop extends Zend_View_Helper_Partial
 
         $content = '';
         // reset the counter if it's call again
-        $this->partialCounter    = 0;
+        $this->partialCounter = 0;
         $this->partialTotalCount = count($model);
 
         foreach ($model as $item) {

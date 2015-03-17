@@ -21,7 +21,7 @@
 
 require_once 'Zend/Feed/Writer/Feed/FeedAbstract.php';
 
- /**
+/**
  * @category   Zend
  * @package    Zend_Feed_Writer
  * @copyright  Copyright (c) 2005-2012 Zend Technologies USA Inc. (http://www.zend.com)
@@ -85,6 +85,16 @@ class Zend_Feed_Writer_Deleted
     }
 
     /**
+     * Retrieve the current or last feed type exported.
+     *
+     * @return string Value will be "rss" or "atom"
+     */
+    public function getType()
+    {
+        return $this->_type;
+    }
+
+    /**
      * Set the current feed type being exported to "rss" or "atom". This allows
      * other objects to gracefully choose whether to execute or not, depending
      * on their appropriateness for the current type, e.g. renderers.
@@ -94,16 +104,6 @@ class Zend_Feed_Writer_Deleted
     public function setType($type)
     {
         $this->_type = $type;
-    }
-
-    /**
-     * Retrieve the current or last feed type exported.
-     *
-     * @return string Value will be "rss" or "atom"
-     */
-    public function getType()
-    {
-        return $this->_type;
     }
 
     public function setReference($reference)

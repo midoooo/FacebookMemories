@@ -39,25 +39,25 @@ use Facebook\FacebookCurl;
 
 session_start();
 $params = array(
-    'scope' => 'email','public_profile','user_photos','user_about_me','user_birthday'
+    'scope' => 'email', 'public_profile', 'user_photos', 'user_about_me', 'user_birthday'
 );
-$redirect_url='http://rtcamp-thakkaraakash.rhcloud.com/';
+$redirect_url = 'http://rtcamp-thakkaraakash.rhcloud.com/';
 FacebookSession::setDefaultApplication($app_id, $app_secret);
 $helper = new FacebookRedirectLoginHelper($redirect_url);
-try{
+try {
     $sess = $helper->getSessionFromRedirect();
-}catch(Exception $e){
+} catch (Exception $e) {
 }
 if (isset($_SESSION['token'])) {
-    $sess=new FacebookSession($_SESSION['token']);
+    $sess = new FacebookSession($_SESSION['token']);
     try {
         $sess->validate($app_id, $app_secret);
-    } catch(FacebookAuthorizationException $e){
+    } catch (FacebookAuthorizationException $e) {
         echo "Unauthorized";
     }
 }
 if (isset($sess)) {
-    $_SESSION['token']=$sess->getAccessToken();
+    $_SESSION['token'] = $sess->getAccessToken();
     header("Location: home.php");
     exit();
 }
@@ -68,12 +68,12 @@ if (isset($sess)) {
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="viewport"
+          content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
-
 
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
@@ -106,16 +106,16 @@ if (isset($sess)) {
     <script>
 
         $.vegas('slideshow', {
-            backgrounds:[
-                { src:'images/5.png', fade:5000, valign:'5%' },
-                { src:'images/1.jpg', fade:5000 },
-                { src:'images/2.png', fade:5000, valign:'5%' },
-                { src:'images/3.png', fade:5000, valign:'5%' },
-                { src:'images/4.png', fade:5000, valign:'5%' },
-                { src:'images/6.png', fade:2000 }
+            backgrounds: [
+                {src: 'images/5.png', fade: 5000, valign: '5%'},
+                {src: 'images/1.jpg', fade: 5000},
+                {src: 'images/2.png', fade: 5000, valign: '5%'},
+                {src: 'images/3.png', fade: 5000, valign: '5%'},
+                {src: 'images/4.png', fade: 5000, valign: '5%'},
+                {src: 'images/6.png', fade: 2000}
             ]
         })('overlay', {
-            src:'/vegas/overlays/11.png'
+            src: '/vegas/overlays/11.png'
         });
     </script>
 </head>
@@ -130,62 +130,63 @@ if (isset($sess)) {
             </div>
             <div class="col-md-8" align="right">
 
-            <div class="col-md-1"></div>
+                <div class="col-md-1"></div>
+            </div>
         </div>
-    </div>
 </nav>
 <br><br>
+
 <div class="container" align="center">
 
     <div class="col-md-2">
     </div>
 
 
-
     <div class="col-md-8">
         <div class="panel panel-default">
             <center>
-            <div class="panel-body">
-                
-                
+                <div class="panel-body">
 
-                <div class="panel panel-default">
-                    <div class="panel-body">
 
-                        <div class="page-header">
-                            <div align="left"><font size="1" color="grey">Welcome to,</font></div>
-                            <div><img src="images/memories.png" style="width:100%">
+                    <div class="panel panel-default">
+                        <div class="panel-body">
 
-                            <br><font color="grey" face="Verdana" size="3">Where memories can be saved!</font></div>
+                            <div class="page-header">
+                                <div align="left"><font size="1" color="grey">Welcome to,</font></div>
+                                <div><img src="images/memories.png" style="width:100%">
+
+                                    <br><font color="grey" face="Verdana" size="3">Where memories can be saved!</font>
+                                </div>
+                            </div>
+                            <b>facebookMemories</b> is a small tool which lets you save your facebook memories for you
+                            to remember it offline. Downloading pictures from facebook can be tedious, and each and
+                            everyone has hundreds of pictures on facebook with no option to download all the pictures or
+                            move them to Picasa/Google+. Hence what facebookMemories provides is :<br><br>
+
+                            <b>Download All Facebook albums<br>
+                                Download selected Facebook albums<br>
+                                Transfer All Facebook albums to Google+/Picasa<br>
+                                Transfer Selected Facebook albums to Google+/Picasa<br></b>
+                            <br><br>Not a member yet? Sign in with facebook now!
+                            <br><br>
+                            <a href= <?php
+                            if (!isset($sess)) {
+                                echo $helper->getLoginUrl($params);
+                            }
+
+                            ?>><input type="image" src="images/facebook.png" height="40px"/></a>
+
                         </div>
-                        <b>facebookMemories</b> is a small tool which lets you save your facebook memories for you to remember it offline. Downloading pictures from facebook can be tedious, and each and everyone has hundreds of pictures on facebook with no option to download all the pictures or move them to Picasa/Google+. Hence what facebookMemories provides is :<br><br>
-                        
-                        <b>Download All Facebook albums<br>
-                        Download selected Facebook albums<br>
-                        Transfer All Facebook albums to Google+/Picasa<br>
-                        Transfer Selected Facebook albums to Google+/Picasa<br></b>
-                        <br><br>Not a member yet? Sign in with facebook now!
-                        <br><br>
-                        <a href= <?php 
-                        if (!isset($sess)) {
-                            echo $helper->getLoginUrl($params);
-                        }
-
-                        ?>><input type="image" src="images/facebook.png" height="40px"/></a>
-                        
                     </div>
+
+
+                    <p>
+
+                    </p>
+
+
                 </div>
-
-
-                <p>
-                    
-                </p>
-
-
-
-                
-            </div>
-        </center>
+            </center>
 
         </div>
     </div>
@@ -193,7 +194,7 @@ if (isset($sess)) {
 
     <div class="col-md-2">
     </div>
-    
+
 </div>
 
 

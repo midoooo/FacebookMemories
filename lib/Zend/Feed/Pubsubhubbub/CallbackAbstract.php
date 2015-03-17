@@ -92,7 +92,7 @@ abstract class Zend_Feed_Pubsubhubbub_CallbackAbstract
         } elseif (!is_array($config)) {
             require_once 'Zend/Feed/Pubsubhubbub/Exception.php';
             throw new Zend_Feed_Pubsubhubbub_Exception('Array or Zend_Config object'
-            . 'expected, got ' . gettype($config));
+                . 'expected, got ' . gettype($config));
         }
         if (array_key_exists('storage', $config)) {
             $this->setStorage($config['storage']);
@@ -114,34 +114,18 @@ abstract class Zend_Feed_Pubsubhubbub_CallbackAbstract
     }
 
     /**
-     * Sets an instance of Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface used
-     * to background save any verification tokens associated with a subscription
-     * or other.
+     * An instance of a class handling Http Responses. This is implemented in
+     * Zend_Feed_Pubsubhubbub_HttpResponse which shares an unenforced interface with
+     * (i.e. not inherited from) Zend_Controller_Response_Http.
      *
-     * @param  Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface $storage
-     * @return Zend_Feed_Pubsubhubbub_CallbackAbstract
+     * @return Zend_Feed_Pubsubhubbub_HttpResponse|Zend_Controller_Response_Http
      */
-    public function setStorage(Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface $storage)
+    public function getHttpResponse()
     {
-        $this->_storage = $storage;
-        return $this;
-    }
-
-    /**
-     * Gets an instance of Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface used
-     * to background save any verification tokens associated with a subscription
-     * or other.
-     *
-     * @return Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface
-     */
-    public function getStorage()
-    {
-        if ($this->_storage === null) {
-            require_once 'Zend/Feed/Pubsubhubbub/Exception.php';
-            throw new Zend_Feed_Pubsubhubbub_Exception('No storage object has been'
-                . ' set that subclasses Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface');
+        if ($this->_httpResponse === null) {
+            $this->_httpResponse = new Zend_Feed_Pubsubhubbub_HttpResponse;
         }
-        return $this->_storage;
+        return $this->_httpResponse;
     }
 
     /**
@@ -168,18 +152,45 @@ abstract class Zend_Feed_Pubsubhubbub_CallbackAbstract
     }
 
     /**
-     * An instance of a class handling Http Responses. This is implemented in
-     * Zend_Feed_Pubsubhubbub_HttpResponse which shares an unenforced interface with
-     * (i.e. not inherited from) Zend_Controller_Response_Http.
+     * Gets an instance of Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface used
+     * to background save any verification tokens associated with a subscription
+     * or other.
      *
-     * @return Zend_Feed_Pubsubhubbub_HttpResponse|Zend_Controller_Response_Http
+     * @return Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface
      */
-    public function getHttpResponse()
+    public function getStorage()
     {
-        if ($this->_httpResponse === null) {
-            $this->_httpResponse = new Zend_Feed_Pubsubhubbub_HttpResponse;
+        if ($this->_storage === null) {
+            require_once 'Zend/Feed/Pubsubhubbub/Exception.php';
+            throw new Zend_Feed_Pubsubhubbub_Exception('No storage object has been'
+                . ' set that subclasses Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface');
         }
-        return $this->_httpResponse;
+        return $this->_storage;
+    }
+
+    /**
+     * Sets an instance of Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface used
+     * to background save any verification tokens associated with a subscription
+     * or other.
+     *
+     * @param  Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface $storage
+     * @return Zend_Feed_Pubsubhubbub_CallbackAbstract
+     */
+    public function setStorage(Zend_Feed_Pubsubhubbub_Model_SubscriptionInterface $storage)
+    {
+        $this->_storage = $storage;
+        return $this;
+    }
+
+    /**
+     * Gets the number of Subscribers for which any updates are on behalf of.
+     * In other words, is this class serving one or more subscribers? How many?
+     *
+     * @return int
+     */
+    public function getSubscriberCount()
+    {
+        return $this->_subscriberCount;
     }
 
     /**
@@ -203,17 +214,6 @@ abstract class Zend_Feed_Pubsubhubbub_CallbackAbstract
     }
 
     /**
-     * Gets the number of Subscribers for which any updates are on behalf of.
-     * In other words, is this class serving one or more subscribers? How many?
-     *
-     * @return int
-     */
-    public function getSubscriberCount()
-    {
-        return $this->_subscriberCount;
-    }
-
-    /**
      * Attempt to detect the callback URL (specifically the path forward)
      */
     protected function _detectCallbackUrl()
@@ -234,7 +234,7 @@ abstract class Zend_Feed_Pubsubhubbub_CallbackAbstract
                 $callbackUrl = substr($callbackUrl, strlen($schemeAndHttpHost));
             }
         } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
-            $callbackUrl= $_SERVER['ORIG_PATH_INFO'];
+            $callbackUrl = $_SERVER['ORIG_PATH_INFO'];
             if (!empty($_SERVER['QUERY_STRING'])) {
                 $callbackUrl .= '?' . $_SERVER['QUERY_STRING'];
             }

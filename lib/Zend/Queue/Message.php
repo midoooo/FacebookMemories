@@ -38,7 +38,7 @@ class Zend_Queue_Message
      */
     protected $_data = array();
 
-     /**
+    /**
      * Connected is true if we have a reference to a live
      * Zend_Queue_Adapter_Abstract object.
      * This is false after the Message has been deserialized.
@@ -71,7 +71,7 @@ class Zend_Queue_Message
     {
         if (isset($options['queue'])) {
             if ($options['queue'] instanceof Zend_Queue) {
-                $this->_queue      = $options['queue'];
+                $this->_queue = $options['queue'];
                 $this->_queueClass = get_class($this->_queue);
             } else {
                 $result = gettype($options['queue']);
@@ -115,8 +115,8 @@ class Zend_Queue_Message
     /**
      * Set message field value
      *
-     * @param  string $key   The message key.
-     * @param  mixed  $value The value for the property.
+     * @param  string $key The message key.
+     * @param  mixed $value The value for the property.
      * @return void
      * @throws Zend_Queue_Exception
      */
@@ -132,7 +132,7 @@ class Zend_Queue_Message
     /**
      * Test existence of message field
      *
-     * @param  string  $key The column key.
+     * @param  string $key The column key.
      * @return boolean
      */
     public function __isset($key)
@@ -166,7 +166,7 @@ class Zend_Queue_Message
         $this->_connected = false;
     }
 
-     /**
+    /**
      * Returns the queue object, or null if this is disconnected message
      *
      * @return Zend_Queue|null
@@ -185,10 +185,10 @@ class Zend_Queue_Message
      */
     public function setQueue(Zend_Queue $queue)
     {
-        $queueClass        = get_class($queue);
-        $this->_queue      = $queue;
+        $queueClass = get_class($queue);
+        $this->_queue = $queue;
         $this->_queueClass = $queueClass;
-        $this->_connected  = true;
+        $this->_connected = true;
         return true;
     }
 

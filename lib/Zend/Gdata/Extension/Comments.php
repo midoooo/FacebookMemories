@@ -66,32 +66,6 @@ class Zend_Gdata_Extension_Comments extends Zend_Gdata_Extension
         return $element;
     }
 
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-        switch ($absoluteNodeName) {
-            case $this->lookupNamespace('gd') . ':' . 'feedLink';
-                $feedLink = new Zend_Gdata_Extension_FeedLink();
-                $feedLink->transferFromDOM($child);
-                $this->_feedLink = $feedLink;
-                break;
-            default:
-                parent::takeChildFromDOM($child);
-                break;
-        }
-    }
-
-    protected function takeAttributeFromDOM($attribute)
-    {
-        switch ($attribute->localName) {
-        case 'rel':
-            $this->_rel = $attribute->nodeValue;
-            break;
-        default:
-            parent::takeAttributeFromDOM($attribute);
-        }
-    }
-
     public function getRel()
     {
         return $this->_rel;
@@ -112,6 +86,32 @@ class Zend_Gdata_Extension_Comments extends Zend_Gdata_Extension
     {
         $this->_feedLink = $value;
         return $this;
+    }
+
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('gd') . ':' . 'feedLink';
+                $feedLink = new Zend_Gdata_Extension_FeedLink();
+                $feedLink->transferFromDOM($child);
+                $this->_feedLink = $feedLink;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
+    }
+
+    protected function takeAttributeFromDOM($attribute)
+    {
+        switch ($attribute->localName) {
+            case 'rel':
+                $this->_rel = $attribute->nodeValue;
+                break;
+            default:
+                parent::takeAttributeFromDOM($attribute);
+        }
     }
 
 }

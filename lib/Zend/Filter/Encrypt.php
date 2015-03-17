@@ -89,7 +89,7 @@ class Zend_Filter_Encrypt implements Zend_Filter_Interface
             $options = array();
         }
 
-        if (Zend_Loader::isReadable('Zend/Filter/Encrypt/' . ucfirst($adapter). '.php')) {
+        if (Zend_Loader::isReadable('Zend/Filter/Encrypt/' . ucfirst($adapter) . '.php')) {
             $adapter = 'Zend_Filter_Encrypt_' . ucfirst($adapter);
         }
 
@@ -109,7 +109,7 @@ class Zend_Filter_Encrypt implements Zend_Filter_Interface
     /**
      * Calls adapter methods
      *
-     * @param string       $method  Method to call
+     * @param string $method Method to call
      * @param string|array $options Options for this method
      */
     public function __call($method, $options)

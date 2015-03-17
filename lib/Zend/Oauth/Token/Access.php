@@ -50,7 +50,8 @@ class Zend_Oauth_Token_Access extends Zend_Oauth_Token
      */
     public function toHeader(
         $url, Zend_Oauth_Config_ConfigInterface $config, array $customParams = null, $realm = null
-    ) {
+    )
+    {
         if (!Zend_Uri::check($url)) {
             require_once 'Zend/Oauth/Exception.php';
             throw new Zend_Oauth_Exception(

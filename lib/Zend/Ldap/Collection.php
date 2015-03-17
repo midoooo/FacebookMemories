@@ -105,16 +105,6 @@ class Zend_Ldap_Collection implements Iterator, Countable
     }
 
     /**
-     * Returns the underlying iterator
-     *
-     * @return Zend_Ldap_Collection_Iterator_Default
-     */
-    public function getInnerIterator()
-    {
-        return $this->_iterator;
-    }
-
-    /**
      * Returns the number of items in current result
      * Implements Countable
      *
@@ -123,6 +113,18 @@ class Zend_Ldap_Collection implements Iterator, Countable
     public function count()
     {
         return $this->_iterator->count();
+    }
+
+    /**
+     * Rewind the Iterator to the first result item
+     * Implements Iterator
+     *
+     * @throws Zend_Ldap_Exception
+     */
+    public function rewind()
+    {
+        $this->_iterator->rewind();
+        $this->_current = 0;
     }
 
     /**
@@ -160,6 +162,16 @@ class Zend_Ldap_Collection implements Iterator, Countable
     protected function _createEntry(array $data)
     {
         return $data;
+    }
+
+    /**
+     * Returns the underlying iterator
+     *
+     * @return Zend_Ldap_Collection_Iterator_Default
+     */
+    public function getInnerIterator()
+    {
+        return $this->_iterator;
     }
 
     /**
@@ -207,18 +219,6 @@ class Zend_Ldap_Collection implements Iterator, Countable
     {
         $this->_iterator->next();
         $this->_current++;
-    }
-
-    /**
-     * Rewind the Iterator to the first result item
-     * Implements Iterator
-     *
-     * @throws Zend_Ldap_Exception
-     */
-    public function rewind()
-    {
-        $this->_iterator->rewind();
-        $this->_current = 0;
     }
 
     /**

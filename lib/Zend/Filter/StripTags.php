@@ -85,7 +85,8 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
         if ($options instanceof Zend_Config) {
             $options = $options->toArray();
         } else if ((!is_array($options)) || (is_array($options) && !array_key_exists('allowTags', $options) &&
-            !array_key_exists('allowAttribs', $options) && !array_key_exists('allowComments', $options))) {
+                !array_key_exists('allowAttribs', $options) && !array_key_exists('allowComments', $options))
+        ) {
             $options = func_get_args();
             $temp['allowTags'] = array_shift($options);
             if (!empty($options)) {
@@ -136,8 +137,8 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
      */
     public function setCommentsAllowed($commentsAllowed)
     {
-       $this->commentsAllowed = (boolean) $commentsAllowed;
-       return $this;
+        $this->commentsAllowed = (boolean)$commentsAllowed;
+        return $this;
     }
 
     /**
@@ -169,8 +170,7 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
                 $tagName = strtolower($element);
                 // Store the tag as allowed with no attributes
                 $this->_tagsAllowed[$tagName] = array();
-            }
-            // Otherwise, if a tag was provided with attributes
+            } // Otherwise, if a tag was provided with attributes
             else if (is_string($index) && (is_array($element) || is_string($element))) {
                 // Canonicalize the tag name
                 $tagName = strtolower($index);
@@ -237,11 +237,11 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
      */
     public function filter($value)
     {
-        $value = (string) $value;
+        $value = (string)$value;
 
         // Strip HTML comments first
         while (strpos($value, '<!--') !== false) {
-            $pos   = strrpos($value, '<!--');
+            $pos = strrpos($value, '<!--');
             $start = substr($value, 0, $pos);
             $value = substr($value, $pos);
 
@@ -249,7 +249,7 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
             if (!preg_match('/--\s*>/s', $value)) {
                 $value = '';
             } else {
-                $value = preg_replace('/<(?:!(?:--[\s\S]*?--\s*)?(>))/s', '',  $value);
+                $value = preg_replace('/<(?:!(?:--[\s\S]*?--\s*)?(>))/s', '', $value);
             }
 
             $value = $start . $value;
@@ -259,7 +259,7 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
         $dataFiltered = '';
         // Parse the input data iteratively as regular pre-tag text followed by a
         // tag; either may be empty strings
-        preg_match_all('/([^<]*)(<?[^>]*>?)/', (string) $value, $matches);
+        preg_match_all('/([^<]*)(<?[^>]*>?)/', (string)$value, $matches);
 
         // Iterate over each set of matches
         foreach ($matches[1] as $index => $preTag) {
@@ -303,10 +303,10 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
         }
 
         // Save the matches to more meaningfully named variables
-        $tagStart      = $matches[1];
-        $tagName       = strtolower($matches[2]);
+        $tagStart = $matches[1];
+        $tagName = strtolower($matches[2]);
         $tagAttributes = $matches[3];
-        $tagEnd        = $matches[5];
+        $tagEnd = $matches[5];
 
         // If the tag is not an allowed tag, then remove the tag entirely
         if (!isset($this->_tagsAllowed[$tagName])) {
@@ -326,18 +326,19 @@ class Zend_Filter_StripTags implements Zend_Filter_Interface
 
             // Iterate over each matched attribute
             foreach ($matches[1] as $index => $attributeName) {
-                $attributeName      = strtolower($attributeName);
+                $attributeName = strtolower($attributeName);
                 $attributeDelimiter = empty($matches[2][$index]) ? $matches[4][$index] : $matches[2][$index];
-                $attributeValue     = empty($matches[3][$index]) ? $matches[5][$index] : $matches[3][$index];
+                $attributeValue = empty($matches[3][$index]) ? $matches[5][$index] : $matches[3][$index];
 
                 // If the attribute is not allowed, then remove it entirely
                 if (!array_key_exists($attributeName, $this->_tagsAllowed[$tagName])
-                    && !array_key_exists($attributeName, $this->_attributesAllowed)) {
+                    && !array_key_exists($attributeName, $this->_attributesAllowed)
+                ) {
                     continue;
                 }
                 // Add the attribute to the accumulator
                 $tagAttributes .= " $attributeName=" . $attributeDelimiter
-                                . $attributeValue . $attributeDelimiter;
+                    . $attributeValue . $attributeDelimiter;
             }
         }
 

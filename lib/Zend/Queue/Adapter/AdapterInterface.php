@@ -75,11 +75,11 @@ interface Zend_Queue_Adapter_AdapterInterface
      * timeout expires then the message will be made available to other queue
      * readers.
      *
-     * @param  string  $name Queue name
+     * @param  string $name Queue name
      * @param  integer $timeout Default visibility timeout
      * @return boolean
      */
-    public function create($name, $timeout=null);
+    public function create($name, $timeout = null);
 
     /**
      * Delete a queue and all of its messages

@@ -32,74 +32,64 @@ class Zend_Text_Table
     /**
      * Auto seperator settings
      */
-    const AUTO_SEPARATE_NONE   = 0x0;
+    const AUTO_SEPARATE_NONE = 0x0;
     const AUTO_SEPARATE_HEADER = 0x1;
     const AUTO_SEPARATE_FOOTER = 0x2;
-    const AUTO_SEPARATE_ALL    = 0x4;
-
-    /**
-     * Decorator used for the table borders
-     *
-     * @var Zend_Text_Table_Decorator_Interface
-     */
-    protected $_decorator = null;
-
-    /**
-     * List of all column widths
-     *
-     * @var array
-     */
-    protected $_columnWidths = null;
-
-    /**
-     * Rows of the table
-     *
-     * @var array
-     */
-    protected $_rows = array();
-
-    /**
-     * Auto separation mode
-     *
-     * @var integer
-     */
-    protected $_autoSeparate = self::AUTO_SEPARATE_ALL;
-
-    /**
-     * Padding for columns
-     *
-     * @var integer
-     */
-    protected $_padding = 0;
-
-    /**
-     * Default column aligns for rows created by appendRow(array $data)
-     *
-     * @var array
-     */
-    protected $_defaultColumnAligns = array();
-
-    /**
-     * Plugin loader for decorators
-     *
-     * @var string
-     */
-    protected $_pluginLoader = null;
-
+    const AUTO_SEPARATE_ALL = 0x4;
     /**
      * Charset which is used for input by default
      *
      * @var string
      */
     protected static $_inputCharset = 'utf-8';
-
     /**
      * Charset which is used internally
      *
      * @var string
      */
     protected static $_outputCharset = 'utf-8';
-
+    /**
+     * Decorator used for the table borders
+     *
+     * @var Zend_Text_Table_Decorator_Interface
+     */
+    protected $_decorator = null;
+    /**
+     * List of all column widths
+     *
+     * @var array
+     */
+    protected $_columnWidths = null;
+    /**
+     * Rows of the table
+     *
+     * @var array
+     */
+    protected $_rows = array();
+    /**
+     * Auto separation mode
+     *
+     * @var integer
+     */
+    protected $_autoSeparate = self::AUTO_SEPARATE_ALL;
+    /**
+     * Padding for columns
+     *
+     * @var integer
+     */
+    protected $_padding = 0;
+    /**
+     * Default column aligns for rows created by appendRow(array $data)
+     *
+     * @var array
+     */
+    protected $_defaultColumnAligns = array();
+    /**
+     * Plugin loader for decorators
+     *
+     * @var string
+     */
+    protected $_pluginLoader = null;
     /**
      * Option keys to skip when calling setOptions()
      *
@@ -114,8 +104,8 @@ class Zend_Text_Table
     /**
      * Create a basic table object
      *
-     * @param  array             $columnsWidths List of all column widths
-     * @param  Zend_Config|array $options       Configuration options
+     * @param  array $columnsWidths List of all column widths
+     * @param  Zend_Config|array $options Configuration options
      * @throws Zend_Text_Table_Exception When no columns widths were set
      */
     public function __construct($options = null)
@@ -178,6 +168,82 @@ class Zend_Text_Table
     }
 
     /**
+     * Get the output charset for column contents
+     *
+     * @param string $charset
+     */
+    public static function getOutputCharset()
+    {
+        return self::$_outputCharset;
+    }
+
+    /**
+     * Set the output charset for column contents
+     *
+     * @param string $charset
+     */
+    public static function setOutputCharset($charset)
+    {
+        self::$_outputCharset = strtolower($charset);
+    }
+
+    /**
+     * Set decorator
+     *
+     * @param  Zend_Text_Table_Decorator_Interface|string $decorator Decorator to use
+     * @return Zend_Text_Table
+     */
+    public function setDecorator($decorator)
+    {
+        if ($decorator instanceof Zend_Text_Table_Decorator_Interface) {
+            $this->_decorator = $decorator;
+        } else {
+            $classname = $this->getPluginLoader()->load($decorator);
+            $this->_decorator = new $classname;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get the plugin loader for decorators
+     *
+     * @return Zend_Loader_PluginLoader
+     */
+    public function getPluginLoader()
+    {
+        if ($this->_pluginLoader === null) {
+            $prefix = 'Zend_Text_Table_Decorator_';
+            $pathPrefix = 'Zend/Text/Table/Decorator/';
+
+            require_once 'Zend/Loader/PluginLoader.php';
+            $this->_pluginLoader = new Zend_Loader_PluginLoader(array($prefix => $pathPrefix));
+        }
+
+        return $this->_pluginLoader;
+    }
+
+    /**
+     * Get the input charset for column contents
+     *
+     * @param string $charset
+     */
+    public static function getInputCharset()
+    {
+        return self::$_inputCharset;
+    }
+
+    /**
+     * Set the input charset for column contents
+     *
+     * @param string $charset
+     */
+    public static function setInputCharset($charset)
+    {
+        self::$_inputCharset = strtolower($charset);
+    }
+
+    /**
      * Set column widths
      *
      * @param  array $columnWidths Widths of all columns
@@ -196,7 +262,7 @@ class Zend_Text_Table
             if (is_int($columnWidth) === false or $columnWidth < 1) {
                 require_once 'Zend/Text/Table/Exception.php';
                 throw new Zend_Text_Table_Exception('Column ' . $columnNum . ' has an invalid'
-                                                    . ' column width');
+                    . ' column width');
             }
         }
 
@@ -213,25 +279,7 @@ class Zend_Text_Table
      */
     public function setAutoSeparate($autoSeparate)
     {
-        $this->_autoSeparate = (int) $autoSeparate;
-        return $this;
-    }
-
-    /**
-     * Set decorator
-     *
-     * @param  Zend_Text_Table_Decorator_Interface|string $decorator Decorator to use
-     * @return Zend_Text_Table
-     */
-    public function setDecorator($decorator)
-    {
-        if ($decorator instanceof Zend_Text_Table_Decorator_Interface) {
-            $this->_decorator = $decorator;
-        } else {
-            $classname        = $this->getPluginLoader()->load($decorator);
-            $this->_decorator = new $classname;
-        }
-
+        $this->_autoSeparate = (int)$autoSeparate;
         return $this;
     }
 
@@ -243,33 +291,15 @@ class Zend_Text_Table
      */
     public function setPadding($padding)
     {
-        $this->_padding = max(0, (int) $padding);
+        $this->_padding = max(0, (int)$padding);
         return $this;
-    }
-
-    /**
-     * Get the plugin loader for decorators
-     *
-     * @return Zend_Loader_PluginLoader
-     */
-    public function getPluginLoader()
-    {
-        if ($this->_pluginLoader === null) {
-            $prefix     = 'Zend_Text_Table_Decorator_';
-            $pathPrefix = 'Zend/Text/Table/Decorator/';
-
-            require_once 'Zend/Loader/PluginLoader.php';
-            $this->_pluginLoader = new Zend_Loader_PluginLoader(array($prefix => $pathPrefix));
-        }
-
-        return $this->_pluginLoader;
     }
 
     /**
      * Set default column align for rows created by appendRow(array $data)
      *
      * @param  integer $columnNum
-     * @param  string  $align
+     * @param  string $align
      * @return Zend_Text_Table
      */
     public function setDefaultColumnAlign($columnNum, $align)
@@ -277,46 +307,6 @@ class Zend_Text_Table
         $this->_defaultColumnAligns[$columnNum] = $align;
 
         return $this;
-    }
-
-    /**
-     * Set the input charset for column contents
-     *
-     * @param string $charset
-     */
-    public static function setInputCharset($charset)
-    {
-        self::$_inputCharset = strtolower($charset);
-    }
-
-    /**
-     * Get the input charset for column contents
-     *
-     * @param string $charset
-     */
-    public static function getInputCharset()
-    {
-        return self::$_inputCharset;
-    }
-
-    /**
-     * Set the output charset for column contents
-     *
-     * @param string $charset
-     */
-    public static function setOutputCharset($charset)
-    {
-        self::$_outputCharset = strtolower($charset);
-    }
-
-    /**
-     * Get the output charset for column contents
-     *
-     * @param string $charset
-     */
-    public static function getOutputCharset()
-    {
-        return self::$_outputCharset;
     }
 
     /**
@@ -343,8 +333,8 @@ class Zend_Text_Table
             require_once 'Zend/Text/Table/Row.php';
             require_once 'Zend/Text/Table/Column.php';
 
-            $data   = $row;
-            $row    = new Zend_Text_Table_Row();
+            $data = $row;
+            $row = new Zend_Text_Table_Row();
             $colNum = 0;
             foreach ($data as $columnData) {
                 if (isset($this->_defaultColumnAligns[$colNum])) {
@@ -361,6 +351,21 @@ class Zend_Text_Table
         $this->_rows[] = $row;
 
         return $this;
+    }
+
+    /**
+     * Magic method which returns the rendered table
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        try {
+            return $this->render();
+        } catch (Exception $e) {
+            trigger_error($e->getMessage(), E_USER_ERROR);
+        }
+
     }
 
     /**
@@ -391,9 +396,9 @@ class Zend_Text_Table
                 $lastColumnWidths = $columnWidths;
             }
 
-            $renderedRow  = $row->render($this->_columnWidths, $this->_decorator, $this->_padding);
+            $renderedRow = $row->render($this->_columnWidths, $this->_decorator, $this->_padding);
             $columnWidths = $row->getColumnWidths();
-            $numColumns   = count($columnWidths);
+            $numColumns = count($columnWidths);
 
             // Check what we have to draw
             if ($rowNum === 0) {
@@ -402,7 +407,7 @@ class Zend_Text_Table
 
                 foreach ($columnWidths as $columnNum => $columnWidth) {
                     $result .= str_repeat($this->_decorator->getHorizontal(),
-                                          $columnWidth);
+                        $columnWidth);
 
                     if (($columnNum + 1) === $numColumns) {
                         $result .= $this->_decorator->getTopRight();
@@ -429,14 +434,14 @@ class Zend_Text_Table
 
                     $currentUpperColumn = 0;
                     $currentLowerColumn = 0;
-                    $currentUpperWidth  = 0;
-                    $currentLowerWidth  = 0;
+                    $currentUpperWidth = 0;
+                    $currentLowerWidth = 0;
 
                     // Loop through all column widths
                     foreach ($this->_columnWidths as $columnNum => $columnWidth) {
                         // Add the horizontal line
                         $result .= str_repeat($this->_decorator->getHorizontal(),
-                                              $columnWidth);
+                            $columnWidth);
 
                         // If this is the last line, break out
                         if (($columnNum + 1) === $totalNumColumns) {
@@ -444,22 +449,22 @@ class Zend_Text_Table
                         }
 
                         // Else check, which connector style has to be used
-                        $connector          = 0x0;
+                        $connector = 0x0;
                         $currentUpperWidth += $columnWidth;
                         $currentLowerWidth += $columnWidth;
 
                         if ($lastColumnWidths[$currentUpperColumn] === $currentUpperWidth) {
-                            $connector          |= 0x1;
+                            $connector |= 0x1;
                             $currentUpperColumn += 1;
-                            $currentUpperWidth   = 0;
+                            $currentUpperWidth = 0;
                         } else {
                             $currentUpperWidth += 1;
                         }
 
                         if ($columnWidths[$currentLowerColumn] === $currentLowerWidth) {
-                            $connector          |= 0x2;
+                            $connector |= 0x2;
                             $currentLowerColumn += 1;
-                            $currentLowerWidth   = 0;
+                            $currentLowerWidth = 0;
                         } else {
                             $currentLowerWidth += 1;
                         }
@@ -500,7 +505,7 @@ class Zend_Text_Table
 
                 foreach ($columnWidths as $columnNum => $columnWidth) {
                     $result .= str_repeat($this->_decorator->getHorizontal(),
-                                          $columnWidth);
+                        $columnWidth);
 
                     if (($columnNum + 1) === $numColumns) {
                         $result .= $this->_decorator->getBottomRight();
@@ -514,20 +519,5 @@ class Zend_Text_Table
         }
 
         return $result;
-    }
-
-    /**
-     * Magic method which returns the rendered table
-     *
-     * @return string
-     */
-    public function __toString()
-    {
-        try {
-            return $this->render();
-        } catch (Exception $e) {
-            trigger_error($e->getMessage(), E_USER_ERROR);
-        }
-
     }
 }

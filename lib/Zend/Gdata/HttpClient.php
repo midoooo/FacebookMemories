@@ -41,6 +41,13 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
 {
 
     /**
+     * True if this request is being made with data supplied by
+     * a stream object instead of a raw encoded string.
+     *
+     * @var bool
+     */
+    protected $_streamingRequest = null;
+    /**
      * OpenSSL private key resource id
      * This key is used for AuthSub authentication.  If this value is set,
      * it is assuemd that secure AuthSub is desired.
@@ -48,7 +55,6 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @var resource
      */
     private $_authSubPrivateKeyId = null;
-
     /**
      * Token for AuthSub authentication.
      * If this token is set, AuthSub authentication is used.
@@ -56,7 +62,6 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @var string
      */
     private $_authSubToken = null;
-
     /**
      * Token for ClientLogin authentication.
      * If only this token is set, ClientLogin authentication is used.
@@ -64,7 +69,6 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @var string
      */
     private $_clientLoginToken = null;
-
     /**
      * Token for ClientLogin authentication.
      * If this token is set, and the AuthSub key is not set,
@@ -73,14 +77,6 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @var string
      */
     private $_clientLoginKey = null;
-
-    /**
-     * True if this request is being made with data supplied by
-     * a stream object instead of a raw encoded string.
-     *
-     * @var bool
-     */
-    protected $_streamingRequest = null;
 
     /**
      * Sets the PEM formatted private key, as read from a file.
@@ -95,7 +91,8 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @return void
      */
     public function setAuthSubPrivateKeyFile($file, $passphrase = null,
-                                             $useIncludePath = false) {
+                                             $useIncludePath = false)
+    {
         $fp = @fopen($file, "r", $useIncludePath);
         if (!$fp) {
             require_once 'Zend/Gdata/App/InvalidArgumentException.php';
@@ -122,64 +119,16 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @throws Zend_Gdata_App_InvalidArgumentException
      * @return Zend_Gdata_HttpClient Provides a fluent interface
      */
-    public function setAuthSubPrivateKey($key, $passphrase = null) {
+    public function setAuthSubPrivateKey($key, $passphrase = null)
+    {
         if ($key != null && !function_exists('openssl_pkey_get_private')) {
             require_once 'Zend/Gdata/App/InvalidArgumentException.php';
             throw new Zend_Gdata_App_InvalidArgumentException(
-                    'You cannot enable secure AuthSub if the openssl module ' .
-                    'is not enabled in your PHP installation.');
+                'You cannot enable secure AuthSub if the openssl module ' .
+                'is not enabled in your PHP installation.');
         }
         $this->_authSubPrivateKeyId = openssl_pkey_get_private(
-                $key, $passphrase);
-        return $this;
-    }
-
-    /**
-     * Gets the openssl private key id
-     *
-     * @return string The private key
-     */
-    public function getAuthSubPrivateKeyId() {
-        return $this->_authSubPrivateKeyId;
-    }
-
-    /**
-     * Gets the AuthSub token used for authentication
-     *
-     * @return string The token
-     */
-    public function getAuthSubToken() {
-        return $this->_authSubToken;
-    }
-
-    /**
-     * Sets the AuthSub token used for authentication
-     *
-     * @param string $token The token
-     * @return Zend_Gdata_HttpClient Provides a fluent interface
-     */
-    public function setAuthSubToken($token) {
-        $this->_authSubToken = $token;
-        return $this;
-    }
-
-    /**
-     * Gets the ClientLogin token used for authentication
-     *
-     * @return string The token
-     */
-    public function getClientLoginToken() {
-        return $this->_clientLoginToken;
-    }
-
-    /**
-     * Sets the ClientLogin token used for authentication
-     *
-     * @param string $token The token
-     * @return Zend_Gdata_HttpClient Provides a fluent interface
-     */
-    public function setClientLoginToken($token) {
-        $this->_clientLoginToken = $token;
+            $key, $passphrase);
         return $this;
     }
 
@@ -204,7 +153,8 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
      * @return array The processed values in an associative array,
      *               using the same names as the params
      */
-    public function filterHttpRequest($method, $url, $headers = array(), $body = null, $contentType = null) {
+    public function filterHttpRequest($method, $url, $headers = array(), $body = null, $contentType = null)
+    {
         if ($this->getAuthSubToken() != null) {
             // AuthSub authentication
             if ($this->getAuthSubPrivateKeyId() != null) {
@@ -216,20 +166,20 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
                 // compute signature
                 $pKeyId = $this->getAuthSubPrivateKeyId();
                 $signSuccess = openssl_sign($dataToSign, $signature, $pKeyId,
-                                            OPENSSL_ALGO_SHA1);
+                    OPENSSL_ALGO_SHA1);
                 if (!$signSuccess) {
                     require_once 'Zend/Gdata/App/Exception.php';
                     throw new Zend_Gdata_App_Exception(
-                            'openssl_signing failure - returned false');
+                        'openssl_signing failure - returned false');
                 }
                 // encode signature
                 $encodedSignature = base64_encode($signature);
 
                 // final header
                 $headers['authorization'] = 'AuthSub token="' . $this->getAuthSubToken() . '" ' .
-                                            'data="' . $dataToSign . '" ' .
-                                            'sig="' . $encodedSignature . '" ' .
-                                            'sigalg="rsa-sha1"';
+                    'data="' . $dataToSign . '" ' .
+                    'sig="' . $encodedSignature . '" ' .
+                    'sigalg="rsa-sha1"';
             } else {
                 // AuthSub without secure tokens
                 $headers['authorization'] = 'AuthSub token="' . $this->getAuthSubToken() . '"';
@@ -241,13 +191,68 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
     }
 
     /**
+     * Gets the AuthSub token used for authentication
+     *
+     * @return string The token
+     */
+    public function getAuthSubToken()
+    {
+        return $this->_authSubToken;
+    }
+
+    /**
+     * Sets the AuthSub token used for authentication
+     *
+     * @param string $token The token
+     * @return Zend_Gdata_HttpClient Provides a fluent interface
+     */
+    public function setAuthSubToken($token)
+    {
+        $this->_authSubToken = $token;
+        return $this;
+    }
+
+    /**
+     * Gets the openssl private key id
+     *
+     * @return string The private key
+     */
+    public function getAuthSubPrivateKeyId()
+    {
+        return $this->_authSubPrivateKeyId;
+    }
+
+    /**
+     * Gets the ClientLogin token used for authentication
+     *
+     * @return string The token
+     */
+    public function getClientLoginToken()
+    {
+        return $this->_clientLoginToken;
+    }
+
+    /**
+     * Sets the ClientLogin token used for authentication
+     *
+     * @param string $token The token
+     * @return Zend_Gdata_HttpClient Provides a fluent interface
+     */
+    public function setClientLoginToken($token)
+    {
+        $this->_clientLoginToken = $token;
+        return $this;
+    }
+
+    /**
      * Method for filtering the HTTP response, though no filtering is
      * currently done.
      *
      * @param Zend_Http_Response $response The response object to filter
      * @return Zend_Http_Response The filterd response object
      */
-    public function filterHttpResponse($response) {
+    public function filterHttpResponse($response)
+    {
         return $response;
     }
 
@@ -261,7 +266,7 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
         return $this->adapter;
     }
 
-   /**
+    /**
      * Load the connection adapter
      *
      * @param Zend_Http_Client_Adapter_Interface $adapter
@@ -272,20 +277,8 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
         if ($adapter == null) {
             $this->adapter = $adapter;
         } else {
-              parent::setAdapter($adapter);
+            parent::setAdapter($adapter);
         }
-    }
-
-    /**
-     * Set the streamingRequest variable which controls whether we are
-     * sending the raw (already encoded) POST data from a stream source.
-     *
-     * @param boolean $value The value to set.
-     * @return void
-     */
-    public function setStreamingRequest($value)
-    {
-        $this->_streamingRequest = $value;
     }
 
     /**
@@ -303,21 +296,15 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
     }
 
     /**
-     * Prepare the request body (for POST and PUT requests)
+     * Set the streamingRequest variable which controls whether we are
+     * sending the raw (already encoded) POST data from a stream source.
      *
-     * @return string
-     * @throws Zend_Http_Client_Exception
+     * @param boolean $value The value to set.
+     * @return void
      */
-    protected function _prepareBody()
+    public function setStreamingRequest($value)
     {
-        if($this->_streamingRequest) {
-            $this->setHeaders(self::CONTENT_LENGTH,
-                $this->raw_post_data->getTotalSize());
-            return $this->raw_post_data;
-        }
-        else {
-            return parent::_prepareBody();
-        }
+        $this->_streamingRequest = $value;
     }
 
     /**
@@ -347,6 +334,23 @@ class Zend_Gdata_HttpClient extends Zend_Http_Client
     {
         $this->_streamingRequest = true;
         return $this->setRawData($data, $enctype);
+    }
+
+    /**
+     * Prepare the request body (for POST and PUT requests)
+     *
+     * @return string
+     * @throws Zend_Http_Client_Exception
+     */
+    protected function _prepareBody()
+    {
+        if ($this->_streamingRequest) {
+            $this->setHeaders(self::CONTENT_LENGTH,
+                $this->raw_post_data->getTotalSize());
+            return $this->raw_post_data;
+        } else {
+            return parent::_prepareBody();
+        }
     }
 
 }

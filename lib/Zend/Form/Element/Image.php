@@ -66,10 +66,10 @@ class Zend_Form_Element_Image extends Zend_Form_Element_Xhtml
         $decorators = $this->getDecorators();
         if (empty($decorators)) {
             $this->addDecorator('Tooltip')
-                 ->addDecorator('Image')
-                 ->addDecorator('Errors')
-                 ->addDecorator('HtmlTag', array('tag' => 'dd'))
-                 ->addDecorator('Label', array('tag' => 'dt'));
+                ->addDecorator('Image')
+                ->addDecorator('Errors')
+                ->addDecorator('HtmlTag', array('tag' => 'dd'))
+                ->addDecorator('Label', array('tag' => 'dt'));
         }
         return $this;
     }
@@ -82,7 +82,7 @@ class Zend_Form_Element_Image extends Zend_Form_Element_Xhtml
      */
     public function setImage($path)
     {
-        $this->src = (string) $path;
+        $this->src = (string)$path;
         return $this;
     }
 
@@ -97,15 +97,14 @@ class Zend_Form_Element_Image extends Zend_Form_Element_Xhtml
     }
 
     /**
-     * Set image value to use when submitted
+     * Was this element used to submit the form?
      *
-     * @param  mixed $value
-     * @return Zend_Form_Element_Image
+     * @return bool
      */
-    public function setImageValue($value)
+    public function isChecked()
     {
-        $this->_imageValue = $value;
-        return $this;
+        $imageValue = $this->getImageValue();
+        return ((null !== $imageValue) && ($this->getValue() == $imageValue));
     }
 
     /**
@@ -119,14 +118,15 @@ class Zend_Form_Element_Image extends Zend_Form_Element_Xhtml
     }
 
     /**
-     * Was this element used to submit the form?
+     * Set image value to use when submitted
      *
-     * @return bool
+     * @param  mixed $value
+     * @return Zend_Form_Element_Image
      */
-    public function isChecked()
+    public function setImageValue($value)
     {
-        $imageValue = $this->getImageValue();
-        return ((null !== $imageValue) && ($this->getValue() == $imageValue));
+        $this->_imageValue = $value;
+        return $this;
     }
 
 }

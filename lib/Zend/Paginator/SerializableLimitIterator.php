@@ -43,30 +43,15 @@ class Zend_Paginator_SerializableLimitIterator extends LimitIterator implements 
     private $_count;
 
     /**
-     * Construct a Zend_Paginator_SerializableLimitIterator
-     *
-     * @param Iterator $it Iterator to limit (must be serializable by un-/serialize)
-     * @param int $offset Offset to first element
-     * @param int $count Maximum number of elements to show or -1 for all
-     * @see LimitIterator::__construct
-     */
-    public function __construct (Iterator $it, $offset=0, $count=-1)
-    {
-        parent::__construct($it, $offset, $count);
-        $this->_offset = $offset;
-        $this->_count = $count;
-    }
-
-    /**
      * @return string representation of the instance
      */
     public function serialize()
     {
         return serialize(array(
-            'it'     => $this->getInnerIterator(),
+            'it' => $this->getInnerIterator(),
             'offset' => $this->_offset,
-            'count'  => $this->_count,
-            'pos'    => $this->getPosition(),
+            'count' => $this->_count,
+            'pos' => $this->getPosition(),
         ));
     }
 
@@ -77,7 +62,22 @@ class Zend_Paginator_SerializableLimitIterator extends LimitIterator implements 
     {
         $dataArr = unserialize($data);
         $this->__construct($dataArr['it'], $dataArr['offset'], $dataArr['count']);
-        $this->seek($dataArr['pos']+$dataArr['offset']);
+        $this->seek($dataArr['pos'] + $dataArr['offset']);
+    }
+
+    /**
+     * Construct a Zend_Paginator_SerializableLimitIterator
+     *
+     * @param Iterator $it Iterator to limit (must be serializable by un-/serialize)
+     * @param int $offset Offset to first element
+     * @param int $count Maximum number of elements to show or -1 for all
+     * @see LimitIterator::__construct
+     */
+    public function __construct(Iterator $it, $offset = 0, $count = -1)
+    {
+        parent::__construct($it, $offset, $count);
+        $this->_offset = $offset;
+        $this->_count = $count;
     }
 
     /**

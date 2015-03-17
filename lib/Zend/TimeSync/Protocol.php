@@ -58,18 +58,19 @@ abstract class Zend_TimeSync_Protocol
     protected $_info = array();
 
     /**
-     * Abstract method that prepares the data to send to the timeserver
+     * Return information sent/returned from the timeserver
      *
-     * @return mixed
+     * @return  array
      */
-    abstract protected function _prepare();
+    public function getInfo()
+    {
+        if (empty($this->_info) === true) {
+            $this->_write($this->_prepare());
+            $timestamp = $this->_extract($this->_read());
+        }
 
-    /**
-     * Abstract method that reads the data returned from the timeserver
-     *
-     * @return mixed
-     */
-    abstract protected function _read();
+        return $this->_info;
+    }
 
     /**
      * Abstract method that writes data to to the timeserver
@@ -80,12 +81,41 @@ abstract class Zend_TimeSync_Protocol
     abstract protected function _write($data);
 
     /**
+     * Abstract method that prepares the data to send to the timeserver
+     *
+     * @return mixed
+     */
+    abstract protected function _prepare();
+
+    /**
      * Abstract method that extracts the binary data returned from the timeserver
      *
      * @param  string|array $data Data returned from the timeserver
      * @return integer
      */
     abstract protected function _extract($data);
+
+    /**
+     * Abstract method that reads the data returned from the timeserver
+     *
+     * @return mixed
+     */
+    abstract protected function _read();
+
+    /**
+     * Query this timeserver without using the fallback mechanism
+     *
+     * @param  string|Zend_Locale $locale (Optional) Locale
+     * @return Zend_Date
+     */
+    public function getDate($locale = null)
+    {
+        $this->_write($this->_prepare());
+        $timestamp = $this->_extract($this->_read());
+
+        $date = new Zend_Date($this, null, $locale);
+        return $date;
+    }
 
     /**
      * Connect to the specified timeserver.
@@ -96,7 +126,7 @@ abstract class Zend_TimeSync_Protocol
     protected function _connect()
     {
         $socket = @fsockopen($this->_timeserver, $this->_port, $errno, $errstr,
-                             Zend_TimeSync::$options['timeout']);
+            Zend_TimeSync::$options['timeout']);
         if ($socket === false) {
             throw new Zend_TimeSync_Exception('could not connect to ' .
                 "'$this->_timeserver' on port '$this->_port', reason: '$errstr'");
@@ -114,35 +144,5 @@ abstract class Zend_TimeSync_Protocol
     {
         @fclose($this->_socket);
         $this->_socket = null;
-    }
-
-    /**
-     * Return information sent/returned from the timeserver
-     *
-     * @return  array
-     */
-    public function getInfo()
-    {
-        if (empty($this->_info) === true) {
-            $this->_write($this->_prepare());
-            $timestamp = $this->_extract($this->_read());
-        }
-
-        return $this->_info;
-    }
-
-    /**
-     * Query this timeserver without using the fallback mechanism
-     *
-     * @param  string|Zend_Locale $locale (Optional) Locale
-     * @return Zend_Date
-     */
-    public function getDate($locale = null)
-    {
-        $this->_write($this->_prepare());
-        $timestamp = $this->_extract($this->_read());
-
-        $date = new Zend_Date($this, null, $locale);
-        return $date;
     }
 }

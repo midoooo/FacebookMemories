@@ -36,7 +36,7 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
      */
     protected $_data = array();
 
-     /**
+    /**
      * Connected is true if we have a reference to a live
      * Zend_Queue_Adapter_AdapterInterface object.
      * This is false after the Message has been deserialized.
@@ -66,7 +66,7 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
      */
     protected $_messageClass = 'Zend_Queue_Message';
 
-     /**
+    /**
      * Iterator pointer.
      *
      * @var integer
@@ -82,9 +82,9 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
     public function __construct(array $options = array())
     {
         if (isset($options['queue'])) {
-            $this->_queue      = $options['queue'];
+            $this->_queue = $options['queue'];
             $this->_queueClass = get_class($this->_queue);
-            $this->_connected  = true;
+            $this->_connected = true;
         } else {
             $this->_connected = false;
         }
@@ -178,7 +178,7 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
      */
     public function setQueue(Zend_Queue $queue)
     {
-        $this->_queue     = $queue;
+        $this->_queue = $queue;
         $this->_connected = false;
 
         // @todo This works only if we have iterated through
@@ -232,6 +232,18 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
     }
 
     /**
+     * Check if there is a current element after calls to rewind() or next().
+     * Used to check if we've iterated to the end of the collection.
+     * Required by interface Iterator.
+     *
+     * @return bool False if there's nothing more to iterate over
+     */
+    public function valid()
+    {
+        return $this->_pointer < count($this);
+    }
+
+    /**
      * Return the identifying key of the current element.
      * Similar to the key() function for arrays in PHP.
      * Required by interface Iterator.
@@ -253,18 +265,6 @@ class Zend_Queue_Message_Iterator implements Iterator, Countable
     public function next()
     {
         ++$this->_pointer;
-    }
-
-    /**
-     * Check if there is a current element after calls to rewind() or next().
-     * Used to check if we've iterated to the end of the collection.
-     * Required by interface Iterator.
-     *
-     * @return bool False if there's nothing more to iterate over
-     */
-    public function valid()
-    {
-        return $this->_pointer < count($this);
     }
 
     /*

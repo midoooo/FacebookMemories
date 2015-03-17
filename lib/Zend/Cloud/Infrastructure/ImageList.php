@@ -32,7 +32,7 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
 
     /**
      * The Image adapter (if exists)
-     * 
+     *
      * @var object
      */
     protected $adapter;
@@ -78,18 +78,6 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
     {
         $this->images[] = $image;
         return $this;
-    }
-
-    /**
-     * Return number of images
-     *
-     * Implement Countable::count()
-     *
-     * @return int
-     */
-    public function count()
-    {
-        return count($this->images);
     }
 
     /**
@@ -157,16 +145,15 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
     }
 
     /**
-     * Whether the offset exists
+     * Return number of images
      *
-     * Implement ArrayAccess::offsetExists()
+     * Implement Countable::count()
      *
-     * @param   int     $offset
-     * @return  bool
+     * @return int
      */
-    public function offsetExists($offset)
+    public function count()
     {
-        return ($offset < $this->count());
+        return count($this->images);
     }
 
     /**
@@ -174,7 +161,7 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
      *
      * Implement ArrayAccess::offsetGet()
      *
-     * @param   int     $offset
+     * @param   int $offset
      * @throws  Zend_Cloud_Infrastructure_Exception
      * @return  Image
      */
@@ -188,12 +175,25 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
     }
 
     /**
+     * Whether the offset exists
+     *
+     * Implement ArrayAccess::offsetExists()
+     *
+     * @param   int $offset
+     * @return  bool
+     */
+    public function offsetExists($offset)
+    {
+        return ($offset < $this->count());
+    }
+
+    /**
      * Throws exception because all values are read-only
      *
      * Implement ArrayAccess::offsetSet()
      *
-     * @param   int     $offset
-     * @param   string  $value
+     * @param   int $offset
+     * @param   string $value
      * @throws  Zend_Cloud_Infrastructure_Exception
      */
     public function offsetSet($offset, $value)
@@ -207,7 +207,7 @@ class Zend_Cloud_Infrastructure_ImageList implements Countable, Iterator, ArrayA
      *
      * Implement ArrayAccess::offsetUnset()
      *
-     * @param   int     $offset
+     * @param   int $offset
      * @throws  Zend_Cloud_Infrastructure_Exception
      */
     public function offsetUnset($offset)

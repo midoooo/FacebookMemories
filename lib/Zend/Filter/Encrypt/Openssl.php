@@ -43,8 +43,8 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
      * )
      */
     protected $_keys = array(
-        'public'   => array(),
-        'private'  => array(),
+        'public' => array(),
+        'private' => array(),
         'envelope' => array()
     );
 
@@ -134,7 +134,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
                 fclose($file);
             } else {
                 $cert = $key;
-                $key  = count($this->_keys[$type]);
+                $key = count($this->_keys[$type]);
             }
 
             switch ($type) {
@@ -189,7 +189,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
     public function setPublicKey($key)
     {
         if (is_array($key)) {
-            foreach($key as $type => $option) {
+            foreach ($key as $type => $option) {
                 if ($type !== 'public') {
                     $key['public'] = $option;
                     unset($key[$type]);
@@ -223,7 +223,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
     public function setPrivateKey($key, $passphrase = null)
     {
         if (is_array($key)) {
-            foreach($key as $type => $option) {
+            foreach ($key as $type => $option) {
                 if ($type !== 'private') {
                     $key['private'] = $option;
                     unset($key[$type]);
@@ -241,17 +241,6 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
     }
 
     /**
-     * Returns all envelope keys
-     *
-     * @return array
-     */
-    public function getEnvelopeKey()
-    {
-        $key = $this->_keys['envelope'];
-        return $key;
-    }
-
-    /**
      * Sets envelope keys
      *
      * @param  string|array $options Envelope keys
@@ -260,7 +249,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
     public function setEnvelopeKey($key)
     {
         if (is_array($key)) {
-            foreach($key as $type => $option) {
+            foreach ($key as $type => $option) {
                 if ($type !== 'envelope') {
                     $key['envelope'] = $option;
                     unset($key[$type]);
@@ -271,28 +260,6 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
         }
 
         return $this->_setKeys($key);
-    }
-
-    /**
-     * Returns the passphrase
-     *
-     * @return string
-     */
-    public function getPassphrase()
-    {
-        return $this->_passphrase;
-    }
-
-    /**
-     * Sets a new passphrase
-     *
-     * @param string $passphrase
-     * @return Zend_Filter_Encrypt_Openssl
-     */
-    public function setPassphrase($passphrase)
-    {
-        $this->_passphrase = $passphrase;
-        return $this;
     }
 
     /**
@@ -339,7 +306,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
      */
     public function setPackage($package)
     {
-        $this->_package = (boolean) $package;
+        $this->_package = (boolean)$package;
         return $this;
     }
 
@@ -353,7 +320,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
      */
     public function encrypt($value)
     {
-        $encrypted     = array();
+        $encrypted = array();
         $encryptedkeys = array();
 
         if (count($this->_keys['public']) == 0) {
@@ -361,10 +328,10 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
             throw new Zend_Filter_Exception('Openssl can not encrypt without public keys');
         }
 
-        $keys         = array();
+        $keys = array();
         $fingerprints = array();
-        $count        = -1;
-        foreach($this->_keys['public'] as $key => $cert) {
+        $count = -1;
+        foreach ($this->_keys['public'] as $key => $cert) {
             $keys[$key] = openssl_pkey_get_public($cert);
             if ($this->_package) {
                 $details = openssl_pkey_get_details($keys[$key]);
@@ -381,10 +348,10 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
         if (!empty($this->_compression)) {
             require_once 'Zend/Filter/Compress.php';
             $compress = new Zend_Filter_Compress($this->_compression);
-            $value    = $compress->filter($value);
+            $value = $compress->filter($value);
         }
 
-        $crypt  = openssl_seal($value, $encrypted, $encryptedkeys, $keys);
+        $crypt = openssl_seal($value, $encrypted, $encryptedkeys, $keys);
         foreach ($keys as $key) {
             openssl_free_key($key);
         }
@@ -399,7 +366,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
         // Pack data and envelope keys into single string
         if ($this->_package) {
             $header = pack('n', count($this->_keys['envelope']));
-            foreach($this->_keys['envelope'] as $key => $envKey) {
+            foreach ($this->_keys['envelope'] as $key => $envKey) {
                 $header .= pack('H32n', $fingerprints[$key], strlen($envKey)) . $envKey;
             }
 
@@ -421,7 +388,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
     public function decrypt($value)
     {
         $decrypted = "";
-        $envelope  = current($this->getEnvelopeKey());
+        $envelope = current($this->getEnvelopeKey());
 
         if (count($this->_keys['private']) !== 1) {
             require_once 'Zend/Filter/Exception.php';
@@ -433,7 +400,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
             throw new Zend_Filter_Exception('Please give a envelope key for decryption with Openssl');
         }
 
-        foreach($this->_keys['private'] as $key => $cert) {
+        foreach ($this->_keys['private'] as $key => $cert) {
             $keys = openssl_pkey_get_private($cert, $this->getPassphrase());
         }
 
@@ -447,10 +414,10 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
 
             $count = unpack('ncount', $value);
             $count = $count['count'];
-            $length  = 2;
-            for($i = $count; $i > 0; --$i) {
+            $length = 2;
+            for ($i = $count; $i > 0; --$i) {
                 $header = unpack('H32print/nsize', substr($value, $length, 18));
-                $length  += 18;
+                $length += 18;
                 if ($header['print'] == $fingerprint) {
                     $envelope = substr($value, $length, $header['size']);
                 }
@@ -462,7 +429,7 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
             $value = substr($value, $length);
         }
 
-        $crypt  = openssl_open($value, $decrypted, $envelope, $keys);
+        $crypt = openssl_open($value, $decrypted, $envelope, $keys);
         openssl_free_key($keys);
 
         if ($crypt === false) {
@@ -474,10 +441,43 @@ class Zend_Filter_Encrypt_Openssl implements Zend_Filter_Encrypt_Interface
         if (!empty($this->_compression)) {
             require_once 'Zend/Filter/Decompress.php';
             $decompress = new Zend_Filter_Decompress($this->_compression);
-            $decrypted  = $decompress->filter($decrypted);
+            $decrypted = $decompress->filter($decrypted);
         }
 
         return $decrypted;
+    }
+
+    /**
+     * Returns all envelope keys
+     *
+     * @return array
+     */
+    public function getEnvelopeKey()
+    {
+        $key = $this->_keys['envelope'];
+        return $key;
+    }
+
+    /**
+     * Returns the passphrase
+     *
+     * @return string
+     */
+    public function getPassphrase()
+    {
+        return $this->_passphrase;
+    }
+
+    /**
+     * Sets a new passphrase
+     *
+     * @param string $passphrase
+     * @return Zend_Filter_Encrypt_Openssl
+     */
+    public function setPassphrase($passphrase)
+    {
+        $this->_passphrase = $passphrase;
+        return $this;
     }
 
     /**

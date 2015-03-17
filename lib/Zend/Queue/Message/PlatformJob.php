@@ -87,6 +87,58 @@ class Zend_Queue_Message_PlatformJob extends Zend_Queue_Message
     }
 
     /**
+     * Sets properties on the ZendApi_Job instance
+     *
+     * Any options in the {@link $_data} array will be checked. Those matching
+     * options in ZendApi_Job will be used to set those options in that
+     * instance.
+     *
+     * @return void
+     */
+    protected function _setJobProperties()
+    {
+
+        if (isset($this->_data['script'])) {
+            $this->_job->setScript($this->_data['script']);
+        }
+
+        if (isset($this->_data['priority'])) {
+            $this->_job->setJobPriority($this->_data['priority']);
+        }
+
+        if (isset($this->_data['name'])) {
+            $this->_job->setJobName($this->_data['name']);
+        }
+
+        if (isset($this->_data['predecessor'])) {
+            $this->_job->setJobDependency($this->_data['predecessor']);
+        }
+
+        if (isset($this->_data['preserved'])) {
+            $this->_job->setPreserved($this->_data['preserved']);
+        }
+
+        if (isset($this->_data['user_variables'])) {
+            $this->_job->setUserVariables($this->_data['user_variables']);
+        }
+
+        if (!empty($this->_data['interval'])) {
+            $endTime = isset($this->_data['end_time']) ? $this->_data['end_time'] : null;
+            $this->_job->setRecurrenceData($this->_data['interval'], $endTime);
+        } elseif (isset($this->_data['interval']) && ($this->_data['interval'] === '')) {
+            $this->_job->setRecurrenceData(0, 0);
+        }
+
+        if (isset($this->_data['scheduled_time'])) {
+            $this->_job->setScheduledTime($this->_data['scheduled_time']);
+        }
+
+        if (isset($this->_data['application_id'])) {
+            $this->_job->setApplicationID($this->_data['application_id']);
+        }
+    }
+
+    /**
      * Set the job identifier
      *
      * Used within Zend_Queue only.
@@ -107,7 +159,7 @@ class Zend_Queue_Message_PlatformJob extends Zend_Queue_Message
      */
     public function getJobId()
     {
-        return (($this->_id) ?  $this->_id : $this->_job->getID());
+        return (($this->_id) ? $this->_id : $this->_job->getID());
     }
 
     /**
@@ -139,56 +191,5 @@ class Zend_Queue_Message_PlatformJob extends Zend_Queue_Message
     public function getQueueClass()
     {
         return 'Zend_Queue_Adapter_Platform_JQ';
-    }
-
-    /**
-     * Sets properties on the ZendApi_Job instance
-     *
-     * Any options in the {@link $_data} array will be checked. Those matching
-     * options in ZendApi_Job will be used to set those options in that
-     * instance.
-     *
-     * @return void
-     */
-    protected function _setJobProperties() {
-
-        if (isset($this->_data['script'])) {
-            $this->_job->setScript($this->_data['script']);
-        }
-
-        if (isset($this->_data['priority'])) {
-            $this->_job->setJobPriority($this->_data['priority']);
-        }
-
-        if (isset($this->_data['name'])) {
-            $this->_job->setJobName($this->_data['name']);
-        }
-
-        if (isset($this->_data['predecessor'])) {
-            $this->_job->setJobDependency($this->_data['predecessor']);
-        }
-
-        if (isset($this->_data['preserved'])) {
-            $this->_job->setPreserved($this->_data['preserved']);
-        }
-
-        if (isset($this->_data['user_variables'])) {
-            $this->_job->setUserVariables($this->_data['user_variables']);
-        }
-
-        if (!empty($this->_data['interval'])) {
-            $endTime = isset($this->_data['end_time']) ? $this->_data['end_time'] : null;
-            $this->_job->setRecurrenceData($this->_data['interval'], $endTime);
-        } elseif (isset($this->_data['interval']) && ($this->_data['interval'] === '')) {
-            $this->_job->setRecurrenceData(0,0);
-        }
-
-        if (isset($this->_data['scheduled_time'])) {
-            $this->_job->setScheduledTime($this->_data['scheduled_time']);
-        }
-
-        if (isset($this->_data['application_id'])) {
-            $this->_job->setApplicationID($this->_data['application_id']);
-        }
     }
 }

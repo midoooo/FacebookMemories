@@ -79,36 +79,8 @@ class Zend_Form_Element_Hash extends Zend_Form_Element_Xhtml
         parent::__construct($spec, $options);
 
         $this->setAllowEmpty(false)
-             ->setRequired(true)
-             ->initCsrfValidator();
-    }
-
-    /**
-     * Set session object
-     *
-     * @param  Zend_Session_Namespace $session
-     * @return Zend_Form_Element_Hash
-     */
-    public function setSession($session)
-    {
-        $this->_session = $session;
-        return $this;
-    }
-
-    /**
-     * Get session object
-     *
-     * Instantiate session object if none currently exists
-     *
-     * @return Zend_Session_Namespace
-     */
-    public function getSession()
-    {
-        if (null === $this->_session) {
-            require_once 'Zend/Session/Namespace.php';
-            $this->_session = new Zend_Session_Namespace($this->getSessionName());
-        }
-        return $this->_session;
+            ->setRequired(true)
+            ->initCsrfValidator();
     }
 
     /**
@@ -133,15 +105,43 @@ class Zend_Form_Element_Hash extends Zend_Form_Element_Xhtml
     }
 
     /**
-     * Salt for CSRF token
+     * Get session object
      *
-     * @param  string $salt
+     * Instantiate session object if none currently exists
+     *
+     * @return Zend_Session_Namespace
+     */
+    public function getSession()
+    {
+        if (null === $this->_session) {
+            require_once 'Zend/Session/Namespace.php';
+            $this->_session = new Zend_Session_Namespace($this->getSessionName());
+        }
+        return $this->_session;
+    }
+
+    /**
+     * Set session object
+     *
+     * @param  Zend_Session_Namespace $session
      * @return Zend_Form_Element_Hash
      */
-    public function setSalt($salt)
+    public function setSession($session)
     {
-        $this->_salt = (string) $salt;
+        $this->_session = $session;
         return $this;
+    }
+
+    /**
+     * Get session namespace for CSRF token
+     *
+     * Generates a session namespace based on salt, element name, and class.
+     *
+     * @return string
+     */
+    public function getSessionName()
+    {
+        return __CLASS__ . '_' . $this->getSalt() . '_' . $this->getName();
     }
 
     /**
@@ -152,6 +152,75 @@ class Zend_Form_Element_Hash extends Zend_Form_Element_Xhtml
     public function getSalt()
     {
         return $this->_salt;
+    }
+
+    /**
+     * Salt for CSRF token
+     *
+     * @param  string $salt
+     * @return Zend_Form_Element_Hash
+     */
+    public function setSalt($salt)
+    {
+        $this->_salt = (string)$salt;
+        return $this;
+    }
+
+    /**
+     * Override getLabel() to always be empty
+     *
+     * @return null
+     */
+    public function getLabel()
+    {
+        return null;
+    }
+
+    /**
+     * Render CSRF token in form
+     *
+     * @param  Zend_View_Interface $view
+     * @return string
+     */
+    public function render(Zend_View_Interface $view = null)
+    {
+        $this->initCsrfToken();
+        return parent::render($view);
+    }
+
+    /**
+     * Initialize CSRF token in session
+     *
+     * @return void
+     */
+    public function initCsrfToken()
+    {
+        $session = $this->getSession();
+        $session->setExpirationHops(1, null, true);
+        $session->setExpirationSeconds($this->getTimeout());
+        $session->hash = $this->getHash();
+    }
+
+    /**
+     * Get CSRF session token timeout
+     *
+     * @return int
+     */
+    public function getTimeout()
+    {
+        return $this->_timeout;
+    }
+
+    /**
+     * Set timeout for CSRF session token
+     *
+     * @param  int $ttl
+     * @return Zend_Form_Element_Hash
+     */
+    public function setTimeout($ttl)
+    {
+        $this->_timeout = (int)$ttl;
+        return $this;
     }
 
     /**
@@ -170,75 +239,6 @@ class Zend_Form_Element_Hash extends Zend_Form_Element_Xhtml
     }
 
     /**
-     * Get session namespace for CSRF token
-     *
-     * Generates a session namespace based on salt, element name, and class.
-     *
-     * @return string
-     */
-    public function getSessionName()
-    {
-        return __CLASS__ . '_' . $this->getSalt() . '_' . $this->getName();
-    }
-
-    /**
-     * Set timeout for CSRF session token
-     *
-     * @param  int $ttl
-     * @return Zend_Form_Element_Hash
-     */
-    public function setTimeout($ttl)
-    {
-        $this->_timeout = (int) $ttl;
-        return $this;
-    }
-
-    /**
-     * Get CSRF session token timeout
-     *
-     * @return int
-     */
-    public function getTimeout()
-    {
-        return $this->_timeout;
-    }
-
-    /**
-     * Override getLabel() to always be empty
-     *
-     * @return null
-     */
-    public function getLabel()
-    {
-        return null;
-    }
-
-    /**
-     * Initialize CSRF token in session
-     *
-     * @return void
-     */
-    public function initCsrfToken()
-    {
-        $session = $this->getSession();
-        $session->setExpirationHops(1, null, true);
-        $session->setExpirationSeconds($this->getTimeout());
-        $session->hash = $this->getHash();
-    }
-
-    /**
-     * Render CSRF token in form
-     *
-     * @param  Zend_View_Interface $view
-     * @return string
-     */
-    public function render(Zend_View_Interface $view = null)
-    {
-        $this->initCsrfToken();
-        return parent::render($view);
-    }
-
-    /**
      * Generate CSRF token
      *
      * Generates CSRF token and stores both in {@link $_hash} and element
@@ -249,10 +249,10 @@ class Zend_Form_Element_Hash extends Zend_Form_Element_Xhtml
     protected function _generateHash()
     {
         $this->_hash = md5(
-            mt_rand(1,1000000)
-            .  $this->getSalt()
-            .  $this->getName()
-            .  mt_rand(1,1000000)
+            mt_rand(1, 1000000)
+            . $this->getSalt()
+            . $this->getName()
+            . mt_rand(1, 1000000)
         );
         $this->setValue($this->_hash);
     }

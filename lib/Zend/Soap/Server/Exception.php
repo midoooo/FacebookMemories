@@ -33,5 +33,6 @@ require_once 'Zend/Exception.php';
  * @version    $Id$
  */
 class Zend_Soap_Server_Exception extends Zend_Exception
-{}
+{
+}
 

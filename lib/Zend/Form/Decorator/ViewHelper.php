@@ -60,15 +60,96 @@ class Zend_Form_Decorator_ViewHelper extends Zend_Form_Decorator_Abstract
     protected $_helper;
 
     /**
-     * Set view helper to use when rendering
+     * Get name
      *
-     * @param  string $helper
-     * @return Zend_Form_Decorator_Element_ViewHelper
+     * If element is a Zend_Form_Element, will attempt to namespace it if the
+     * element belongs to an array.
+     *
+     * @return string
      */
-    public function setHelper($helper)
+    public function getName()
     {
-        $this->_helper = (string) $helper;
-        return $this;
+        if (null === ($element = $this->getElement())) {
+            return '';
+        }
+
+        $name = $element->getName();
+
+        if (!$element instanceof Zend_Form_Element) {
+            return $name;
+        }
+
+        if (null !== ($belongsTo = $element->getBelongsTo())) {
+            $name = $belongsTo . '['
+                . $name
+                . ']';
+        }
+
+        if ($element->isArray()) {
+            $name .= '[]';
+        }
+
+        return $name;
+    }
+
+    /**
+     * Render an element using a view helper
+     *
+     * Determine view helper from 'viewHelper' option, or, if none set, from
+     * the element type. Then call as
+     * helper($element->getName(), $element->getValue(), $element->getAttribs())
+     *
+     * @param  string $content
+     * @return string
+     * @throws Zend_Form_Decorator_Exception if element or view are not registered
+     */
+    public function render($content)
+    {
+        $element = $this->getElement();
+
+        $view = $element->getView();
+        if (null === $view) {
+            require_once 'Zend/Form/Decorator/Exception.php';
+            throw new Zend_Form_Decorator_Exception('ViewHelper decorator cannot render without a registered view object');
+        }
+
+        if (method_exists($element, 'getMultiOptions')) {
+            $element->getMultiOptions();
+        }
+
+        $helper = $this->getHelper();
+        $separator = $this->getSeparator();
+        $value = $this->getValue($element);
+        $attribs = $this->getElementAttribs();
+        $name = $element->getFullyQualifiedName();
+        $id = $element->getId();
+        $attribs['id'] = $id;
+
+        $helperObject = $view->getHelper($helper);
+        if (method_exists($helperObject, 'setTranslator')) {
+            $helperObject->setTranslator($element->getTranslator());
+        }
+
+        // Check list separator
+        if (isset($attribs['listsep'])
+            && in_array($helper, array('formMulticheckbox', 'formRadio', 'formSelect'))
+        ) {
+            $listsep = $attribs['listsep'];
+            unset($attribs['listsep']);
+
+            $elementContent = $view->$helper($name, $value, $attribs, $element->options, $listsep);
+        } else {
+            $elementContent = $view->$helper($name, $value, $attribs, $element->options);
+        }
+
+        switch ($this->getPlacement()) {
+            case self::APPEND:
+                return $content . $separator . $elementContent;
+            case self::PREPEND:
+                return $elementContent . $separator . $content;
+            default:
+                return $elementContent;
+        }
     }
 
     /**
@@ -103,36 +184,43 @@ class Zend_Form_Decorator_ViewHelper extends Zend_Form_Decorator_Abstract
     }
 
     /**
-     * Get name
+     * Set view helper to use when rendering
      *
-     * If element is a Zend_Form_Element, will attempt to namespace it if the
-     * element belongs to an array.
-     *
-     * @return string
+     * @param  string $helper
+     * @return Zend_Form_Decorator_Element_ViewHelper
      */
-    public function getName()
+    public function setHelper($helper)
     {
-        if (null === ($element = $this->getElement())) {
-            return '';
-        }
+        $this->_helper = (string)$helper;
+        return $this;
+    }
 
-        $name = $element->getName();
-
+    /**
+     * Get value
+     *
+     * If element type is one of the button types, returns the label.
+     *
+     * @param  Zend_Form_Element $element
+     * @return string|null
+     */
+    public function getValue($element)
+    {
         if (!$element instanceof Zend_Form_Element) {
-            return $name;
+            return null;
         }
 
-        if (null !== ($belongsTo = $element->getBelongsTo())) {
-            $name = $belongsTo . '['
-                  . $name
-                  . ']';
+        foreach ($this->_buttonTypes as $type) {
+            if ($element instanceof $type) {
+                if (stristr($type, 'button')) {
+                    $element->content = $element->getLabel();
+
+                    return $element->getValue();
+                }
+                return $element->getLabel();
+            }
         }
 
-        if ($element->isArray()) {
-            $name .= '[]';
-        }
-
-        return $name;
+        return $element->getValue();
     }
 
     /**
@@ -176,93 +264,5 @@ class Zend_Form_Decorator_ViewHelper extends Zend_Form_Decorator_Abstract
         $attribs['id'] = $id;
 
         return $attribs;
-    }
-
-    /**
-     * Get value
-     *
-     * If element type is one of the button types, returns the label.
-     *
-     * @param  Zend_Form_Element $element
-     * @return string|null
-     */
-    public function getValue($element)
-    {
-        if (!$element instanceof Zend_Form_Element) {
-            return null;
-        }
-
-        foreach ($this->_buttonTypes as $type) {
-            if ($element instanceof $type) {
-                if (stristr($type, 'button')) {
-                    $element->content = $element->getLabel();
-
-                    return $element->getValue();
-                }
-                return $element->getLabel();
-            }
-        }
-
-        return $element->getValue();
-    }
-
-    /**
-     * Render an element using a view helper
-     *
-     * Determine view helper from 'viewHelper' option, or, if none set, from
-     * the element type. Then call as
-     * helper($element->getName(), $element->getValue(), $element->getAttribs())
-     *
-     * @param  string $content
-     * @return string
-     * @throws Zend_Form_Decorator_Exception if element or view are not registered
-     */
-    public function render($content)
-    {
-        $element = $this->getElement();
-
-        $view = $element->getView();
-        if (null === $view) {
-            require_once 'Zend/Form/Decorator/Exception.php';
-            throw new Zend_Form_Decorator_Exception('ViewHelper decorator cannot render without a registered view object');
-        }
-
-        if (method_exists($element, 'getMultiOptions')) {
-            $element->getMultiOptions();
-        }
-
-        $helper        = $this->getHelper();
-        $separator     = $this->getSeparator();
-        $value         = $this->getValue($element);
-        $attribs       = $this->getElementAttribs();
-        $name          = $element->getFullyQualifiedName();
-        $id            = $element->getId();
-        $attribs['id'] = $id;
-
-        $helperObject  = $view->getHelper($helper);
-        if (method_exists($helperObject, 'setTranslator')) {
-            $helperObject->setTranslator($element->getTranslator());
-        }
-
-        // Check list separator
-        if (isset($attribs['listsep'])
-            && in_array($helper, array('formMulticheckbox', 'formRadio', 'formSelect'))
-        ) {
-            $listsep = $attribs['listsep'];
-            unset($attribs['listsep']);
-
-            $elementContent = $view->$helper($name, $value, $attribs, $element->options, $listsep);
-        } else {
-            $elementContent = $view->$helper($name, $value, $attribs, $element->options);
-        }
-
-        switch ($this->getPlacement()) {
-            case self::APPEND:
-                return $content . $separator . $elementContent;
-            case self::PREPEND:
-                return $elementContent . $separator . $content;
-            default:
-                return $elementContent;
-        }
     }
 }

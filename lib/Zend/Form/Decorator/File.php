@@ -57,28 +57,6 @@ class Zend_Form_Decorator_File
     protected $_placement = 'APPEND';
 
     /**
-     * Get attributes to pass to file helper
-     *
-     * @return array
-     */
-    public function getAttribs()
-    {
-        $attribs   = $this->getOptions();
-
-        if (null !== ($element = $this->getElement())) {
-            $attribs = array_merge($attribs, $element->getAttribs());
-        }
-
-        foreach ($this->_attribBlacklist as $key) {
-            if (array_key_exists($key, $attribs)) {
-                unset($attribs[$key]);
-            }
-        }
-
-        return $attribs;
-    }
-
-    /**
      * Render a form file
      *
      * @param  string $content
@@ -96,16 +74,16 @@ class Zend_Form_Decorator_File
             return $content;
         }
 
-        $name      = $element->getName();
-        $attribs   = $this->getAttribs();
+        $name = $element->getName();
+        $attribs = $this->getAttribs();
         if (!array_key_exists('id', $attribs)) {
             $attribs['id'] = $name;
         }
 
         $separator = $this->getSeparator();
         $placement = $this->getPlacement();
-        $markup    = array();
-        $size      = $element->getMaxFileSize();
+        $markup = array();
+        $size = $element->getMaxFileSize();
         if ($size > 0) {
             $element->setMaxFileSize(0);
             $markup[] = $view->formHidden('MAX_FILE_SIZE', $size);
@@ -122,7 +100,7 @@ class Zend_Form_Decorator_File
             $name .= "[]";
             $count = $element->getMultiFile();
             for ($i = 0; $i < $count; ++$i) {
-                $htmlAttribs        = $attribs;
+                $htmlAttribs = $attribs;
                 $htmlAttribs['id'] .= '-' . $i;
                 $markup[] = $view->$helper($name, $htmlAttribs);
             }
@@ -139,5 +117,27 @@ class Zend_Form_Decorator_File
             default:
                 return $content . $separator . $markup;
         }
+    }
+
+    /**
+     * Get attributes to pass to file helper
+     *
+     * @return array
+     */
+    public function getAttribs()
+    {
+        $attribs = $this->getOptions();
+
+        if (null !== ($element = $this->getElement())) {
+            $attribs = array_merge($attribs, $element->getAttribs());
+        }
+
+        foreach ($this->_attribBlacklist as $key) {
+            if (array_key_exists($key, $attribs)) {
+                unset($attribs[$key]);
+            }
+        }
+
+        return $attribs;
     }
 }

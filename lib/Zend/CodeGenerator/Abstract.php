@@ -61,15 +61,12 @@ abstract class Zend_CodeGenerator_Abstract
     }
 
     /**
-     * setConfig()
+     * _init() - this is called before the constuctor
      *
-     * @param Zend_Config $config
-     * @return Zend_CodeGenerator_Abstract
      */
-    public function setConfig(Zend_Config $config)
+    protected function _init()
     {
-        $this->setOptions($config->toArray());
-        return $this;
+
     }
 
     /**
@@ -90,14 +87,24 @@ abstract class Zend_CodeGenerator_Abstract
     }
 
     /**
-     * setSourceContent()
+     * _prepare() - this is called at construction completion
      *
-     * @param string $sourceContent
      */
-    public function setSourceContent($sourceContent)
+    protected function _prepare()
     {
-        $this->_sourceContent = $sourceContent;
-        return;
+
+    }
+
+    /**
+     * setConfig()
+     *
+     * @param Zend_Config $config
+     * @return Zend_CodeGenerator_Abstract
+     */
+    public function setConfig(Zend_Config $config)
+    {
+        $this->setOptions($config->toArray());
+        return $this;
     }
 
     /**
@@ -111,28 +118,15 @@ abstract class Zend_CodeGenerator_Abstract
     }
 
     /**
-     * _init() - this is called before the constuctor
+     * setSourceContent()
      *
+     * @param string $sourceContent
      */
-    protected function _init()
+    public function setSourceContent($sourceContent)
     {
-
+        $this->_sourceContent = $sourceContent;
+        return;
     }
-
-    /**
-     * _prepare() - this is called at construction completion
-     *
-     */
-    protected function _prepare()
-    {
-
-    }
-
-    /**
-     * generate() - must be implemented by the child
-     *
-     */
-    abstract public function generate();
 
     /**
      * __toString() - casting to a string will in turn call generate()
@@ -143,5 +137,11 @@ abstract class Zend_CodeGenerator_Abstract
     {
         return $this->generate();
     }
+
+    /**
+     * generate() - must be implemented by the child
+     *
+     */
+    abstract public function generate();
 
 }

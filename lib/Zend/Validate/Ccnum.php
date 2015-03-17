@@ -35,7 +35,7 @@ class Zend_Validate_Ccnum extends Zend_Validate_Abstract
     /**
      * Validation failure message key for when the value is not of valid length
      */
-    const LENGTH   = 'ccnumLength';
+    const LENGTH = 'ccnumLength';
 
     /**
      * Validation failure message key for when the value fails the mod-10 checksum
@@ -55,7 +55,7 @@ class Zend_Validate_Ccnum extends Zend_Validate_Abstract
      * @var array
      */
     protected $_messageTemplates = array(
-        self::LENGTH   => "'%value%' must contain between 13 and 19 digits",
+        self::LENGTH => "'%value%' must contain between 13 and 19 digits",
         self::CHECKSUM => "Luhn algorithm (mod-10 checksum) failed on '%value%'"
     );
 
@@ -93,7 +93,7 @@ class Zend_Validate_Ccnum extends Zend_Validate_Abstract
             return false;
         }
 
-        $sum    = 0;
+        $sum = 0;
         $weight = 2;
 
         for ($i = $length - 2; $i >= 0; $i--) {

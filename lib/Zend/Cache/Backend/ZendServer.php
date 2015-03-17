@@ -49,39 +49,9 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
     );
 
     /**
-     * Store data
-     *
-     * @param mixed  $data        Object to store
-     * @param string $id          Cache id
-     * @param int    $timeToLive  Time to live in seconds
-     * @throws Zend_Cache_Exception
-     */
-    abstract protected function _store($data, $id, $timeToLive);
-
-    /**
-     * Fetch data
-     *
-     * @param string $id          Cache id
-     * @throws Zend_Cache_Exception
-     */
-    abstract protected function _fetch($id);
-
-    /**
-     * Unset data
-     *
-     * @param string $id          Cache id
-     */
-    abstract protected function _unset($id);
-
-    /**
-     * Clear cache
-     */
-    abstract protected function _clear();
-
-    /**
      * Test if a cache is available for the given id and (if yes) return it (false else)
      *
-     * @param  string  $id                     cache id
+     * @param  string $id cache id
      * @param  boolean $doNotTestCacheValidity if set to true, the cache validity won't be tested
      * @return string cached datas (or false)
      */
@@ -95,6 +65,14 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
     }
 
     /**
+     * Fetch data
+     *
+     * @param string $id Cache id
+     * @throws Zend_Cache_Exception
+     */
+    abstract protected function _fetch($id);
+
+    /**
      * Test if a cache is available or not (for the given id)
      *
      * @param  string $id cache id
@@ -106,24 +84,11 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
         $tmp = $this->_fetch('internal-metadatas---' . $id);
         if ($tmp !== false) {
             if (!is_array($tmp) || !isset($tmp['mtime'])) {
-                Zend_Cache::throwException('Cache metadata for \'' . $id . '\' id is corrupted' );
+                Zend_Cache::throwException('Cache metadata for \'' . $id . '\' id is corrupted');
             }
             return $tmp['mtime'];
         }
         return false;
-    }
-
-    /**
-     * Compute & return the expire time
-     *
-     * @return int expire time (unix timestamp)
-     */
-    private function _expireTime($lifetime)
-    {
-        if ($lifetime === null) {
-            return 9999999999;
-        }
-        return time() + $lifetime;
     }
 
     /**
@@ -150,9 +115,32 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
             $this->_log('Zend_Cache_Backend_ZendServer::save() : tags are unsupported by the ZendServer backends');
         }
 
-        return  $this->_store($data, $id, $lifetime) &&
-                $this->_store($metadatas, 'internal-metadatas---' . $id, $lifetime);
+        return $this->_store($data, $id, $lifetime) &&
+        $this->_store($metadatas, 'internal-metadatas---' . $id, $lifetime);
     }
+
+    /**
+     * Compute & return the expire time
+     *
+     * @return int expire time (unix timestamp)
+     */
+    private function _expireTime($lifetime)
+    {
+        if ($lifetime === null) {
+            return 9999999999;
+        }
+        return time() + $lifetime;
+    }
+
+    /**
+     * Store data
+     *
+     * @param mixed $data Object to store
+     * @param string $id Cache id
+     * @param int $timeToLive Time to live in seconds
+     * @throws Zend_Cache_Exception
+     */
+    abstract protected function _store($data, $id, $timeToLive);
 
     /**
      * Remove a cache record
@@ -169,6 +157,13 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
     }
 
     /**
+     * Unset data
+     *
+     * @param string $id Cache id
+     */
+    abstract protected function _unset($id);
+
+    /**
      * Clean some cache records
      *
      * Available modes are :
@@ -179,7 +174,7 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
      * 'matchingAnyTag' => unsupported
      *
      * @param  string $mode clean mode
-     * @param  array  $tags array of tags
+     * @param  array $tags array of tags
      * @throws Zend_Cache_Exception
      * @return boolean true if no problem
      */
@@ -204,4 +199,9 @@ abstract class Zend_Cache_Backend_ZendServer extends Zend_Cache_Backend implemen
                 break;
         }
     }
+
+    /**
+     * Clear cache
+     */
+    abstract protected function _clear();
 }

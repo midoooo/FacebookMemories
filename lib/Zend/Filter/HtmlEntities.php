@@ -57,7 +57,7 @@ class Zend_Filter_HtmlEntities implements Zend_Filter_Interface
      * Sets filter options
      *
      * @param  integer|array $quoteStyle
-     * @param  string  $charSet
+     * @param  string $charSet
      * @return void
      */
     public function __construct($options = array())
@@ -95,6 +95,81 @@ class Zend_Filter_HtmlEntities implements Zend_Filter_Interface
     }
 
     /**
+     * Returns the charSet option
+     *
+     * Proxies to {@link getEncoding()}
+     *
+     * @return string
+     */
+    public function getCharSet()
+    {
+        return $this->getEncoding();
+    }
+
+    /**
+     * Get encoding
+     *
+     * @return string
+     */
+    public function getEncoding()
+    {
+        return $this->_encoding;
+    }
+
+    /**
+     * Set encoding
+     *
+     * @param  string $value
+     * @return Zend_Filter_HtmlEntities
+     */
+    public function setEncoding($value)
+    {
+        $this->_encoding = (string)$value;
+        return $this;
+    }
+
+    /**
+     * Sets the charSet option
+     *
+     * Proxies to {@link setEncoding()}
+     *
+     * @param  string $charSet
+     * @return Zend_Filter_HtmlEntities Provides a fluent interface
+     */
+    public function setCharSet($charSet)
+    {
+        return $this->setEncoding($charSet);
+    }
+
+    /**
+     * Defined by Zend_Filter_Interface
+     *
+     * Returns the string $value, converting characters to their corresponding HTML entity
+     * equivalents where they exist
+     *
+     * @param  string $value
+     * @return string
+     */
+    public function filter($value)
+    {
+        $filtered = htmlentities((string)$value, $this->getQuoteStyle(), $this->getEncoding(), $this->getDoubleQuote());
+        if (strlen((string)$value) && !strlen($filtered)) {
+            if (!function_exists('iconv')) {
+                require_once 'Zend/Filter/Exception.php';
+                throw new Zend_Filter_Exception('Encoding mismatch has resulted in htmlentities errors');
+            }
+            $enc = $this->getEncoding();
+            $value = iconv('', $enc . '//IGNORE', (string)$value);
+            $filtered = htmlentities($value, $this->getQuoteStyle(), $enc, $this->getDoubleQuote());
+            if (!strlen($filtered)) {
+                require_once 'Zend/Filter/Exception.php';
+                throw new Zend_Filter_Exception('Encoding mismatch has resulted in htmlentities errors');
+            }
+        }
+        return $filtered;
+    }
+
+    /**
      * Returns the quoteStyle option
      *
      * @return integer
@@ -116,54 +191,6 @@ class Zend_Filter_HtmlEntities implements Zend_Filter_Interface
         return $this;
     }
 
-
-    /**
-     * Get encoding
-     *
-     * @return string
-     */
-    public function getEncoding()
-    {
-         return $this->_encoding;
-    }
-
-    /**
-     * Set encoding
-     *
-     * @param  string $value
-     * @return Zend_Filter_HtmlEntities
-     */
-    public function setEncoding($value)
-    {
-        $this->_encoding = (string) $value;
-        return $this;
-    }
-
-    /**
-     * Returns the charSet option
-     *
-     * Proxies to {@link getEncoding()}
-     *
-     * @return string
-     */
-    public function getCharSet()
-    {
-        return $this->getEncoding();
-    }
-
-    /**
-     * Sets the charSet option
-     *
-     * Proxies to {@link setEncoding()}
-     *
-     * @param  string $charSet
-     * @return Zend_Filter_HtmlEntities Provides a fluent interface
-     */
-    public function setCharSet($charSet)
-    {
-        return $this->setEncoding($charSet);
-    }
-
     /**
      * Returns the doubleQuote option
      *
@@ -182,35 +209,7 @@ class Zend_Filter_HtmlEntities implements Zend_Filter_Interface
      */
     public function setDoubleQuote($doubleQuote)
     {
-        $this->_doubleQuote = (boolean) $doubleQuote;
+        $this->_doubleQuote = (boolean)$doubleQuote;
         return $this;
-    }
-
-    /**
-     * Defined by Zend_Filter_Interface
-     *
-     * Returns the string $value, converting characters to their corresponding HTML entity
-     * equivalents where they exist
-     *
-     * @param  string $value
-     * @return string
-     */
-    public function filter($value)
-    {
-        $filtered = htmlentities((string) $value, $this->getQuoteStyle(), $this->getEncoding(), $this->getDoubleQuote());
-        if (strlen((string) $value) && !strlen($filtered)) {
-            if (!function_exists('iconv')) {
-                require_once 'Zend/Filter/Exception.php';
-                throw new Zend_Filter_Exception('Encoding mismatch has resulted in htmlentities errors');
-            }
-            $enc      = $this->getEncoding();
-            $value    = iconv('', $enc . '//IGNORE', (string) $value);
-            $filtered = htmlentities($value, $this->getQuoteStyle(), $enc, $this->getDoubleQuote());
-            if (!strlen($filtered)) {
-                require_once 'Zend/Filter/Exception.php';
-                throw new Zend_Filter_Exception('Encoding mismatch has resulted in htmlentities errors');
-            }
-        }
-        return $filtered;
     }
 }

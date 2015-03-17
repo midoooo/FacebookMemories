@@ -128,13 +128,13 @@ class Zend_Amf_Response
     }
 
     /**
-     * Return the output stream content
+     * Retrieve attached AMF message headers
      *
-     * @return string The contents of the output stream
+     * @return array Array of Zend_Amf_Value_MessageHeader objects
      */
-    public function getResponse()
+    public function getAmfHeaders()
     {
-        return $this->_outputStream->getStream();
+        return $this->_headers;
     }
 
     /**
@@ -145,6 +145,16 @@ class Zend_Amf_Response
     public function __toString()
     {
         return $this->getResponse();
+    }
+
+    /**
+     * Return the output stream content
+     *
+     * @return string The contents of the output stream
+     */
+    public function getResponse()
+    {
+        return $this->_outputStream->getStream();
     }
 
     /**
@@ -179,16 +189,6 @@ class Zend_Amf_Response
     {
         $this->_headers[] = $header;
         return $this;
-    }
-
-    /**
-     * Retrieve attached AMF message headers
-     *
-     * @return array Array of Zend_Amf_Value_MessageHeader objects
-     */
-    public function getAmfHeaders()
-    {
-        return $this->_headers;
     }
 
     /**

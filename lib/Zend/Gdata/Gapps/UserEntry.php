@@ -140,43 +140,6 @@ class Zend_Gdata_Gapps_UserEntry extends Zend_Gdata_Entry
     }
 
     /**
-     * Creates individual Entry objects of the appropriate type and
-     * stores them as members of this entry based upon DOM data.
-     *
-     * @param DOMNode $child The DOMNode to process
-     */
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-
-        switch ($absoluteNodeName) {
-            case $this->lookupNamespace('apps') . ':' . 'login';
-                $login = new Zend_Gdata_Gapps_Extension_Login();
-                $login->transferFromDOM($child);
-                $this->_login = $login;
-                break;
-            case $this->lookupNamespace('apps') . ':' . 'name';
-                $name = new Zend_Gdata_Gapps_Extension_Name();
-                $name->transferFromDOM($child);
-                $this->_name = $name;
-                break;
-            case $this->lookupNamespace('apps') . ':' . 'quota';
-                $quota = new Zend_Gdata_Gapps_Extension_Quota();
-                $quota->transferFromDOM($child);
-                $this->_quota = $quota;
-                break;
-            case $this->lookupNamespace('gd') . ':' . 'feedLink';
-                $feedLink = new Zend_Gdata_Extension_FeedLink();
-                $feedLink->transferFromDOM($child);
-                $this->_feedLink[] = $feedLink;
-                break;
-            default:
-                parent::takeChildFromDOM($child);
-                break;
-        }
-    }
-
-    /**
      * Get the value of the login property for this object.
      *
      * @see setLogin
@@ -290,6 +253,43 @@ class Zend_Gdata_Gapps_UserEntry extends Zend_Gdata_Entry
     {
         $this->_feedLink = $value;
         return $this;
+    }
+
+    /**
+     * Creates individual Entry objects of the appropriate type and
+     * stores them as members of this entry based upon DOM data.
+     *
+     * @param DOMNode $child The DOMNode to process
+     */
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('apps') . ':' . 'login';
+                $login = new Zend_Gdata_Gapps_Extension_Login();
+                $login->transferFromDOM($child);
+                $this->_login = $login;
+                break;
+            case $this->lookupNamespace('apps') . ':' . 'name';
+                $name = new Zend_Gdata_Gapps_Extension_Name();
+                $name->transferFromDOM($child);
+                $this->_name = $name;
+                break;
+            case $this->lookupNamespace('apps') . ':' . 'quota';
+                $quota = new Zend_Gdata_Gapps_Extension_Quota();
+                $quota->transferFromDOM($child);
+                $this->_quota = $quota;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'feedLink';
+                $feedLink = new Zend_Gdata_Extension_FeedLink();
+                $feedLink->transferFromDOM($child);
+                $this->_feedLink[] = $feedLink;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
     }
 
 }

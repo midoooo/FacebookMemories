@@ -59,98 +59,42 @@ abstract class Zend_Mail_Transport_Abstract
      * @access public
      */
     public $header = '';
-
-    /**
-     * Array of message headers
-     * @var array
-     * @access protected
-     */
-    protected $_headers = array();
-
-    /**
-     * Message is a multipart message
-     * @var boolean
-     * @access protected
-     */
-    protected $_isMultipart = false;
-
-    /**
-     * Zend_Mail object
-     * @var false|Zend_Mail
-     * @access protected
-     */
-    protected $_mail = false;
-
-    /**
-     * Array of message parts
-     * @var array
-     * @access protected
-     */
-    protected $_parts = array();
-
     /**
      * Recipients string
      * @var string
      * @access public
      */
     public $recipients = '';
-
     /**
      * EOL character string used by transport
      * @var string
      * @access public
      */
     public $EOL = "\r\n";
-
     /**
-     * Send an email independent from the used transport
-     *
-     * The requisite information for the email will be found in the following
-     * properties:
-     *
-     * - {@link $recipients} - list of recipients (string)
-     * - {@link $header} - message header
-     * - {@link $body} - message body
+     * Array of message headers
+     * @var array
+     * @access protected
      */
-    abstract protected function _sendMail();
-
+    protected $_headers = array();
     /**
-     * Return all mail headers as an array
-     *
-     * If a boundary is given, a multipart header is generated with a
-     * Content-Type of either multipart/alternative or multipart/mixed depending
-     * on the mail parts present in the {@link $_mail Zend_Mail object} present.
-     *
-     * @param string $boundary
-     * @return array
+     * Message is a multipart message
+     * @var boolean
+     * @access protected
      */
-    protected function _getHeaders($boundary)
-    {
-        if (null !== $boundary) {
-            // Build multipart mail
-            $type = $this->_mail->getType();
-            if (!$type) {
-                if ($this->_mail->hasAttachments) {
-                    $type = Zend_Mime::MULTIPART_MIXED;
-                } elseif ($this->_mail->getBodyText() && $this->_mail->getBodyHtml()) {
-                    $type = Zend_Mime::MULTIPART_ALTERNATIVE;
-                } else {
-                    $type = Zend_Mime::MULTIPART_MIXED;
-                }
-            }
-
-            $this->_headers['Content-Type'] = array(
-                $type . ';'
-                . $this->EOL
-                . " " . 'boundary="' . $boundary . '"'
-            );
-            $this->boundary = $boundary;
-        }
-
-        $this->_headers['MIME-Version'] = array('1.0');
-
-        return $this->_headers;
-    }
+    protected $_isMultipart = false;
+    /**
+     * Zend_Mail object
+     * @var false|Zend_Mail
+     * @access protected
+     */
+    protected $_mail = false;
+    /**
+     * Array of message parts
+     * @var array
+     * @access protected
+     */
+    protected $_parts = array();
 
     /**
      * Prepend header name to header value
@@ -165,6 +109,136 @@ abstract class Zend_Mail_Transport_Abstract
     protected static function _formatHeader(&$item, $key, $prefix)
     {
         $item = $prefix . ': ' . $item;
+    }
+
+    /**
+     * Send a mail using this transport
+     *
+     * @param  Zend_Mail $mail
+     * @access public
+     * @return void
+     * @throws Zend_Mail_Transport_Exception if mail is empty
+     */
+    public function send(Zend_Mail $mail)
+    {
+        $this->_isMultipart = false;
+        $this->_mail = $mail;
+        $this->_parts = $mail->getParts();
+        $mime = $mail->getMime();
+
+        // Build body content
+        $this->_buildBody();
+
+        // Determine number of parts and boundary
+        $count = count($this->_parts);
+        $boundary = null;
+        if ($count < 1) {
+            /**
+             * @see Zend_Mail_Transport_Exception
+             */
+            require_once 'Zend/Mail/Transport/Exception.php';
+            throw new Zend_Mail_Transport_Exception('Empty mail cannot be sent');
+        }
+
+        if ($count > 1) {
+            // Multipart message; create new MIME object and boundary
+            $mime = new Zend_Mime($this->_mail->getMimeBoundary());
+            $boundary = $mime->boundary();
+        } elseif ($this->_isMultipart) {
+            // multipart/alternative -- grab boundary
+            $boundary = $this->_parts[0]->boundary;
+        }
+
+        // Determine recipients, and prepare headers
+        $this->recipients = implode(',', $mail->getRecipients());
+        $this->_prepareHeaders($this->_getHeaders($boundary));
+
+        // Create message body
+        // This is done so that the same Zend_Mail object can be used in
+        // multiple transports
+        $message = new Zend_Mime_Message();
+        $message->setParts($this->_parts);
+        $message->setMime($mime);
+        $this->body = $message->generateMessage($this->EOL);
+
+        // Send to transport!
+        $this->_sendMail();
+    }
+
+    /**
+     * Generate MIME compliant message from the current configuration
+     *
+     * If both a text and HTML body are present, generates a
+     * multipart/alternative Zend_Mime_Part containing the headers and contents
+     * of each. Otherwise, uses whichever of the text or HTML parts present.
+     *
+     * The content part is then prepended to the list of Zend_Mime_Parts for
+     * this message.
+     *
+     * @return void
+     */
+    protected function _buildBody()
+    {
+        if (($text = $this->_mail->getBodyText())
+            && ($html = $this->_mail->getBodyHtml())
+        ) {
+            // Generate unique boundary for multipart/alternative
+            $mime = new Zend_Mime(null);
+            $boundaryLine = $mime->boundaryLine($this->EOL);
+            $boundaryEnd = $mime->mimeEnd($this->EOL);
+
+            $text->disposition = false;
+            $html->disposition = false;
+
+            $body = $boundaryLine
+                . $text->getHeaders($this->EOL)
+                . $this->EOL
+                . $text->getContent($this->EOL)
+                . $this->EOL
+                . $boundaryLine
+                . $html->getHeaders($this->EOL)
+                . $this->EOL
+                . $html->getContent($this->EOL)
+                . $this->EOL
+                . $boundaryEnd;
+
+            $mp = new Zend_Mime_Part($body);
+            $mp->type = Zend_Mime::MULTIPART_ALTERNATIVE;
+            $mp->boundary = $mime->boundary();
+
+            $this->_isMultipart = true;
+
+            // Ensure first part contains text alternatives
+            array_unshift($this->_parts, $mp);
+
+            // Get headers
+            $this->_headers = $this->_mail->getHeaders();
+            return;
+        }
+
+        // If not multipart, then get the body
+        if (false !== ($body = $this->_mail->getBodyHtml())) {
+            array_unshift($this->_parts, $body);
+        } elseif (false !== ($body = $this->_mail->getBodyText())) {
+            array_unshift($this->_parts, $body);
+        }
+
+        if (!$body) {
+            /**
+             * @see Zend_Mail_Transport_Exception
+             */
+            require_once 'Zend/Mail/Transport/Exception.php';
+            throw new Zend_Mail_Transport_Exception('No body specified');
+        }
+
+        // Get headers
+        $this->_headers = $this->_mail->getHeaders();
+        $headers = $body->getHeadersArray($this->EOL);
+        foreach ($headers as $header) {
+            // Headers in Zend_Mime_Part are kept as arrays with two elements, a
+            // key and a value
+            $this->_headers[$header[0]] = array($header[1]);
+        }
     }
 
     /**
@@ -219,132 +293,52 @@ abstract class Zend_Mail_Transport_Abstract
     }
 
     /**
-     * Generate MIME compliant message from the current configuration
+     * Return all mail headers as an array
      *
-     * If both a text and HTML body are present, generates a
-     * multipart/alternative Zend_Mime_Part containing the headers and contents
-     * of each. Otherwise, uses whichever of the text or HTML parts present.
+     * If a boundary is given, a multipart header is generated with a
+     * Content-Type of either multipart/alternative or multipart/mixed depending
+     * on the mail parts present in the {@link $_mail Zend_Mail object} present.
      *
-     * The content part is then prepended to the list of Zend_Mime_Parts for
-     * this message.
-     *
-     * @return void
+     * @param string $boundary
+     * @return array
      */
-    protected function _buildBody()
+    protected function _getHeaders($boundary)
     {
-        if (($text = $this->_mail->getBodyText())
-            && ($html = $this->_mail->getBodyHtml()))
-        {
-            // Generate unique boundary for multipart/alternative
-            $mime = new Zend_Mime(null);
-            $boundaryLine = $mime->boundaryLine($this->EOL);
-            $boundaryEnd  = $mime->mimeEnd($this->EOL);
+        if (null !== $boundary) {
+            // Build multipart mail
+            $type = $this->_mail->getType();
+            if (!$type) {
+                if ($this->_mail->hasAttachments) {
+                    $type = Zend_Mime::MULTIPART_MIXED;
+                } elseif ($this->_mail->getBodyText() && $this->_mail->getBodyHtml()) {
+                    $type = Zend_Mime::MULTIPART_ALTERNATIVE;
+                } else {
+                    $type = Zend_Mime::MULTIPART_MIXED;
+                }
+            }
 
-            $text->disposition = false;
-            $html->disposition = false;
-
-            $body = $boundaryLine
-                  . $text->getHeaders($this->EOL)
-                  . $this->EOL
-                  . $text->getContent($this->EOL)
-                  . $this->EOL
-                  . $boundaryLine
-                  . $html->getHeaders($this->EOL)
-                  . $this->EOL
-                  . $html->getContent($this->EOL)
-                  . $this->EOL
-                  . $boundaryEnd;
-
-            $mp           = new Zend_Mime_Part($body);
-            $mp->type     = Zend_Mime::MULTIPART_ALTERNATIVE;
-            $mp->boundary = $mime->boundary();
-
-            $this->_isMultipart = true;
-
-            // Ensure first part contains text alternatives
-            array_unshift($this->_parts, $mp);
-
-            // Get headers
-            $this->_headers = $this->_mail->getHeaders();
-            return;
+            $this->_headers['Content-Type'] = array(
+                $type . ';'
+                . $this->EOL
+                . " " . 'boundary="' . $boundary . '"'
+            );
+            $this->boundary = $boundary;
         }
 
-        // If not multipart, then get the body
-        if (false !== ($body = $this->_mail->getBodyHtml())) {
-            array_unshift($this->_parts, $body);
-        } elseif (false !== ($body = $this->_mail->getBodyText())) {
-            array_unshift($this->_parts, $body);
-        }
+        $this->_headers['MIME-Version'] = array('1.0');
 
-        if (!$body) {
-            /**
-             * @see Zend_Mail_Transport_Exception
-             */
-            require_once 'Zend/Mail/Transport/Exception.php';
-            throw new Zend_Mail_Transport_Exception('No body specified');
-        }
-
-        // Get headers
-        $this->_headers = $this->_mail->getHeaders();
-        $headers = $body->getHeadersArray($this->EOL);
-        foreach ($headers as $header) {
-            // Headers in Zend_Mime_Part are kept as arrays with two elements, a
-            // key and a value
-            $this->_headers[$header[0]] = array($header[1]);
-        }
+        return $this->_headers;
     }
 
     /**
-     * Send a mail using this transport
+     * Send an email independent from the used transport
      *
-     * @param  Zend_Mail $mail
-     * @access public
-     * @return void
-     * @throws Zend_Mail_Transport_Exception if mail is empty
+     * The requisite information for the email will be found in the following
+     * properties:
+     *
+     * - {@link $recipients} - list of recipients (string)
+     * - {@link $header} - message header
+     * - {@link $body} - message body
      */
-    public function send(Zend_Mail $mail)
-    {
-        $this->_isMultipart = false;
-        $this->_mail        = $mail;
-        $this->_parts       = $mail->getParts();
-        $mime               = $mail->getMime();
-
-        // Build body content
-        $this->_buildBody();
-
-        // Determine number of parts and boundary
-        $count    = count($this->_parts);
-        $boundary = null;
-        if ($count < 1) {
-            /**
-             * @see Zend_Mail_Transport_Exception
-             */
-            require_once 'Zend/Mail/Transport/Exception.php';
-            throw new Zend_Mail_Transport_Exception('Empty mail cannot be sent');
-        }
-
-        if ($count > 1) {
-            // Multipart message; create new MIME object and boundary
-            $mime     = new Zend_Mime($this->_mail->getMimeBoundary());
-            $boundary = $mime->boundary();
-        } elseif ($this->_isMultipart) {
-            // multipart/alternative -- grab boundary
-            $boundary = $this->_parts[0]->boundary;
-        }
-
-        // Determine recipients, and prepare headers
-        $this->recipients = implode(',', $mail->getRecipients());
-        $this->_prepareHeaders($this->_getHeaders($boundary));
-
-        // Create message body
-        // This is done so that the same Zend_Mail object can be used in
-        // multiple transports
-        $message = new Zend_Mime_Message();
-        $message->setParts($this->_parts);
-        $message->setMime($mime);
-        $this->body = $message->generateMessage($this->EOL);
-
-        // Send to transport!
-        $this->_sendMail();
-    }
+    abstract protected function _sendMail();
 }

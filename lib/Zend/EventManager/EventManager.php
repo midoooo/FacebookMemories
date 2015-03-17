@@ -89,67 +89,16 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     }
 
     /**
-     * Set static collections container
-     *
-     * @param  Zend_EventManager_StaticEventCollection $collections
-     * @return void
-     */
-    public function setSharedCollections(Zend_EventManager_SharedEventCollection $collections)
-    {
-        $this->sharedCollections = $collections;
-        return $this;
-    }
-
-    /**
      * Remove any shared collections
      *
      * Sets {@link $sharedCollections} to boolean false to disable ability
      * to lazy-load static event manager instance.
-     * 
+     *
      * @return void
      */
     public function unsetSharedCollections()
     {
         $this->sharedCollections = false;
-    }
-
-    /**
-     * Get static collections container
-     *
-     * @return false|Zend_EventManager_SharedEventCollection
-     */
-    public function getSharedCollections()
-    {
-        if (null === $this->sharedCollections) {
-            $this->setSharedCollections(Zend_EventManager_StaticEventManager::getInstance());
-        }
-        return $this->sharedCollections;
-    }
-
-    /**
-     * Get the identifier(s) for this Zend_EventManager_EventManager
-     *
-     * @return array
-     */
-    public function getIdentifiers()
-    {
-        return $this->identifiers;
-    }
-
-    /**
-     * Set the identifiers (overrides any currently set identifiers)
-     *
-     * @param string|int|array|Traversable $identifiers
-     * @return Zend_EventManager_EventManager
-     */
-    public function setIdentifiers($identifiers)
-    {
-        if (is_array($identifiers) || $identifiers instanceof Traversable) {
-            $this->identifiers = array_unique((array) $identifiers);
-        } elseif ($identifiers !== null) {
-            $this->identifiers = array($identifiers);
-        }
-        return $this;
     }
 
     /**
@@ -161,7 +110,7 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     public function addIdentifiers($identifiers)
     {
         if (is_array($identifiers) || $identifiers instanceof Traversable) {
-            $this->identifiers = array_unique($this->identifiers + (array) $identifiers);
+            $this->identifiers = array_unique($this->identifiers + (array)$identifiers);
         } elseif ($identifiers !== null) {
             $this->identifiers = array_unique(array_merge($this->identifiers, array($identifiers)));
         }
@@ -182,8 +131,8 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     public function trigger($event, $target = null, $argv = array(), $callback = null)
     {
         if ($event instanceof Zend_EventManager_EventDescription) {
-            $e        = $event;
-            $event    = $e->getName();
+            $e = $event;
+            $event = $e->getName();
             $callback = $target;
         } elseif ($target instanceof Zend_EventManager_EventDescription) {
             $e = $target;
@@ -209,6 +158,195 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     }
 
     /**
+     * Trigger listeners
+     *
+     * Actual functionality for triggering listeners, to which both trigger() and triggerUntil()
+     * delegate.
+     *
+     * @param  string $event Event name
+     * @param  EventDescription $e
+     * @param  null|callback $callback
+     * @return ResponseCollection
+     */
+    protected function triggerListeners($event, Zend_EventManager_EventDescription $e, $callback = null)
+    {
+        $responses = new Zend_EventManager_ResponseCollection;
+        $listeners = $this->getListeners($event);
+
+        // Add shared/wildcard listeners to the list of listeners,
+        // but don't modify the listeners object
+        $sharedListeners = $this->getSharedListeners($event);
+        $sharedWildcardListeners = $this->getSharedListeners('*');
+        $wildcardListeners = $this->getListeners('*');
+        if (count($sharedListeners) || count($sharedWildcardListeners) || count($wildcardListeners)) {
+            $listeners = clone $listeners;
+        }
+
+        // Shared listeners on this specific event
+        $this->insertListeners($listeners, $sharedListeners);
+
+        // Shared wildcard listeners
+        $this->insertListeners($listeners, $sharedWildcardListeners);
+
+        // Add wildcard listeners
+        $this->insertListeners($listeners, $wildcardListeners);
+
+        if ($listeners->isEmpty()) {
+            return $responses;
+        }
+
+        foreach ($listeners as $listener) {
+            // Trigger the listener's callback, and push its result onto the
+            // response collection
+            $responses->push(call_user_func($listener->getCallback(), $e));
+
+            // If the event was asked to stop propagating, do so
+            if ($e->propagationIsStopped()) {
+                $responses->setStopped(true);
+                break;
+            }
+
+            // If the result causes our validation callback to return true,
+            // stop propagation
+            if ($callback && call_user_func($callback, $responses->last())) {
+                $responses->setStopped(true);
+                break;
+            }
+        }
+
+        return $responses;
+    }
+
+    /**
+     * Retrieve all listeners for a given event
+     *
+     * @param  string $event
+     * @return Zend_Stdlib_PriorityQueue
+     */
+    public function getListeners($event)
+    {
+        if (!array_key_exists($event, $this->events)) {
+            return new Zend_Stdlib_PriorityQueue();
+        }
+        return $this->events[$event];
+    }
+
+    /**
+     * Get list of all listeners attached to the shared collection for
+     * identifiers registered by this instance
+     *
+     * @param  string $event
+     * @return array
+     */
+    protected function getSharedListeners($event)
+    {
+        if (!$sharedCollections = $this->getSharedCollections()) {
+            return array();
+        }
+
+        $identifiers = $this->getIdentifiers();
+        $sharedListeners = array();
+
+        foreach ($identifiers as $id) {
+            if (!$listeners = $sharedCollections->getListeners($id, $event)) {
+                continue;
+            }
+
+            if (!is_array($listeners) && !($listeners instanceof Traversable)) {
+                continue;
+            }
+
+            foreach ($listeners as $listener) {
+                if (!$listener instanceof Zend_Stdlib_CallbackHandler) {
+                    continue;
+                }
+                $sharedListeners[] = $listener;
+            }
+        }
+
+        return $sharedListeners;
+    }
+
+    /**
+     * Get static collections container
+     *
+     * @return false|Zend_EventManager_SharedEventCollection
+     */
+    public function getSharedCollections()
+    {
+        if (null === $this->sharedCollections) {
+            $this->setSharedCollections(Zend_EventManager_StaticEventManager::getInstance());
+        }
+        return $this->sharedCollections;
+    }
+
+    /**
+     * Set static collections container
+     *
+     * @param  Zend_EventManager_StaticEventCollection $collections
+     * @return void
+     */
+    public function setSharedCollections(Zend_EventManager_SharedEventCollection $collections)
+    {
+        $this->sharedCollections = $collections;
+        return $this;
+    }
+
+    /**
+     * Get the identifier(s) for this Zend_EventManager_EventManager
+     *
+     * @return array
+     */
+    public function getIdentifiers()
+    {
+        return $this->identifiers;
+    }
+
+    /**
+     * Set the identifiers (overrides any currently set identifiers)
+     *
+     * @param string|int|array|Traversable $identifiers
+     * @return Zend_EventManager_EventManager
+     */
+    public function setIdentifiers($identifiers)
+    {
+        if (is_array($identifiers) || $identifiers instanceof Traversable) {
+            $this->identifiers = array_unique((array)$identifiers);
+        } elseif ($identifiers !== null) {
+            $this->identifiers = array($identifiers);
+        }
+        return $this;
+    }
+
+    /**
+     * Add listeners to the master queue of listeners
+     *
+     * Used to inject shared listeners and wildcard listeners.
+     *
+     * @param  Zend_Stdlib_PriorityQueue $masterListeners
+     * @param  Zend_Stdlib_PriorityQueue $listeners
+     * @return void
+     */
+    protected function insertListeners($masterListeners, $listeners)
+    {
+        if (!count($listeners)) {
+            return;
+        }
+
+        foreach ($listeners as $listener) {
+            $priority = $listener->getMetadatum('priority');
+            if (null === $priority) {
+                $priority = 1;
+            } elseif (is_array($priority)) {
+                // If we have an array, likely using PriorityQueue. Grab first
+                // element of the array, as that's the actual priority.
+                $priority = array_shift($priority);
+            }
+            $masterListeners->insert($listener, $priority);
+        }
+    }
+
+    /**
      * Trigger listeners until return value of one causes a callback to
      * evaluate to true
      *
@@ -224,8 +362,8 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     public function triggerUntil($event, $target, $argv = null, $callback = null)
     {
         if ($event instanceof Zend_EventManager_EventDescription) {
-            $e        = $event;
-            $event    = $e->getName();
+            $e = $event;
+            $event = $e->getName();
             $callback = $target;
         } elseif ($target instanceof Zend_EventManager_EventDescription) {
             $e = $target;
@@ -261,7 +399,7 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
      * executed. By default, this value is 1; however, you may set it for any
      * integer value. Higher values have higher priority (i.e., execute first).
      *
-     * You can specify "*" for the event name. In such cases, the listener will 
+     * You can specify "*" for the event name. In such cases, the listener will
      * be triggered for every event.
      *
      * @param  string|array|Zend_EventManager_ListenerAggregate $event An event or array of event names. If a ListenerAggregate, proxies to {@link attachAggregate()}.
@@ -384,20 +522,6 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     }
 
     /**
-     * Retrieve all listeners for a given event
-     *
-     * @param  string $event
-     * @return Zend_Stdlib_PriorityQueue
-     */
-    public function getListeners($event)
-    {
-        if (!array_key_exists($event, $this->events)) {
-            return new Zend_Stdlib_PriorityQueue();
-        }
-        return $this->events[$event];
-    }
-
-    /**
      * Clear all listeners for a given event
      *
      * @param  string $event
@@ -423,129 +547,5 @@ class Zend_EventManager_EventManager implements Zend_EventManager_EventCollectio
     public function prepareArgs(array $args)
     {
         return new ArrayObject($args);
-    }
-
-    /**
-     * Trigger listeners
-     *
-     * Actual functionality for triggering listeners, to which both trigger() and triggerUntil()
-     * delegate.
-     *
-     * @param  string           $event Event name
-     * @param  EventDescription $e
-     * @param  null|callback    $callback
-     * @return ResponseCollection
-     */
-    protected function triggerListeners($event, Zend_EventManager_EventDescription $e, $callback = null)
-    {
-        $responses = new Zend_EventManager_ResponseCollection;
-        $listeners = $this->getListeners($event);
-
-        // Add shared/wildcard listeners to the list of listeners,
-        // but don't modify the listeners object
-        $sharedListeners         = $this->getSharedListeners($event);
-        $sharedWildcardListeners = $this->getSharedListeners('*');
-        $wildcardListeners       = $this->getListeners('*');
-        if (count($sharedListeners) || count($sharedWildcardListeners) || count($wildcardListeners)) {
-            $listeners = clone $listeners;
-        }
-
-        // Shared listeners on this specific event
-        $this->insertListeners($listeners, $sharedListeners);
-
-        // Shared wildcard listeners
-        $this->insertListeners($listeners, $sharedWildcardListeners);
-
-        // Add wildcard listeners
-        $this->insertListeners($listeners, $wildcardListeners);
-
-        if ($listeners->isEmpty()) {
-            return $responses;
-        }
-
-        foreach ($listeners as $listener) {
-            // Trigger the listener's callback, and push its result onto the
-            // response collection
-            $responses->push(call_user_func($listener->getCallback(), $e));
-
-            // If the event was asked to stop propagating, do so
-            if ($e->propagationIsStopped()) {
-                $responses->setStopped(true);
-                break;
-            }
-
-            // If the result causes our validation callback to return true,
-            // stop propagation
-            if ($callback && call_user_func($callback, $responses->last())) {
-                $responses->setStopped(true);
-                break;
-            }
-        }
-
-        return $responses;
-    }
-
-    /**
-     * Get list of all listeners attached to the shared collection for
-     * identifiers registered by this instance
-     *
-     * @param  string $event
-     * @return array
-     */
-    protected function getSharedListeners($event)
-    {
-        if (!$sharedCollections = $this->getSharedCollections()) {
-            return array();
-        }
-
-        $identifiers     = $this->getIdentifiers();
-        $sharedListeners = array();
-
-        foreach ($identifiers as $id) {
-            if (!$listeners = $sharedCollections->getListeners($id, $event)) {
-                continue;
-            }
-
-            if (!is_array($listeners) && !($listeners instanceof Traversable)) {
-                continue;
-            }
-
-            foreach ($listeners as $listener) {
-                if (!$listener instanceof Zend_Stdlib_CallbackHandler) {
-                    continue;
-                }
-                $sharedListeners[] = $listener;
-            }
-        }
-
-        return $sharedListeners;
-    }
-
-    /**
-     * Add listeners to the master queue of listeners
-     *
-     * Used to inject shared listeners and wildcard listeners.
-     * 
-     * @param  Zend_Stdlib_PriorityQueue $masterListeners 
-     * @param  Zend_Stdlib_PriorityQueue $listeners 
-     * @return void
-     */
-    protected function insertListeners($masterListeners, $listeners)
-    {
-        if (!count($listeners)) {
-            return;
-        }
-
-        foreach ($listeners as $listener) {
-            $priority = $listener->getMetadatum('priority');
-            if (null === $priority) {
-                $priority = 1;
-            } elseif (is_array($priority)) {
-                // If we have an array, likely using PriorityQueue. Grab first
-                // element of the array, as that's the actual priority.
-                $priority = array_shift($priority);
-            }
-            $masterListeners->insert($listener, $priority);
-        }
     }
 }

@@ -83,7 +83,7 @@ class Zend_Feed_Rss extends Zend_Feed_Abstract
         $rdfTags = $this->_element->getElementsByTagNameNS('http://www.w3.org/1999/02/22-rdf-syntax-ns#', 'RDF');
         if ($rdfTags->length != 0) {
             $this->_element = $rdfTags->item(0);
-        } else  {
+        } else {
             $this->_element = $this->_element->getElementsByTagName('channel')->item(0);
         }
         if (!$this->_element) {
@@ -122,6 +122,55 @@ class Zend_Feed_Rss extends Zend_Feed_Abstract
             default:
                 return parent::__get($var);
         }
+    }
+
+    /**
+     * Send feed to a http client with the correct header
+     *
+     * @return void
+     * @throws Zend_Feed_Exception if headers have already been sent
+     */
+    public function send()
+    {
+        if (headers_sent()) {
+            /**
+             * @see Zend_Feed_Exception
+             */
+            require_once 'Zend/Feed/Exception.php';
+            throw new Zend_Feed_Exception('Cannot send RSS because headers have already been sent.');
+        }
+
+        header('Content-Type: application/rss+xml; charset=' . $this->_element->ownerDocument->actualEncoding);
+
+        echo $this->saveXml();
+    }
+
+    /**
+     * Override Zend_Feed_Element to include <rss> root node
+     *
+     * @return string
+     */
+    public function saveXml()
+    {
+        // Return a complete document including XML prologue.
+        $doc = new DOMDocument($this->_element->ownerDocument->version,
+            $this->_element->ownerDocument->actualEncoding);
+        $root = $doc->createElement('rss');
+
+        // Use rss version 2.0
+        $root->setAttribute('version', '2.0');
+
+        // Content namespace
+        $root->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:content', 'http://purl.org/rss/1.0/modules/content/');
+        $root->appendChild($doc->importNode($this->_element, true));
+
+        // Append root node
+        $doc->appendChild($root);
+
+        // Format output
+        $doc->formatOutput = true;
+
+        return $doc->saveXML();
     }
 
     /**
@@ -453,8 +502,8 @@ class Zend_Feed_Rss extends Zend_Feed_Abstract
             }
             if (isset($dataentry->commentRss)) {
                 $comments = $this->_element->createElementNS('http://wellformedweb.org/CommentAPI/',
-                                                             'wfw:commentRss',
-                                                             $dataentry->commentRss);
+                    'wfw:commentRss',
+                    $dataentry->commentRss);
                 $item->appendChild($comments);
             }
 
@@ -475,55 +524,6 @@ class Zend_Feed_Rss extends Zend_Feed_Abstract
 
             $root->appendChild($item);
         }
-    }
-
-    /**
-     * Override Zend_Feed_Element to include <rss> root node
-     *
-     * @return string
-     */
-    public function saveXml()
-    {
-        // Return a complete document including XML prologue.
-        $doc = new DOMDocument($this->_element->ownerDocument->version,
-                               $this->_element->ownerDocument->actualEncoding);
-        $root = $doc->createElement('rss');
-
-        // Use rss version 2.0
-        $root->setAttribute('version', '2.0');
-
-        // Content namespace
-        $root->setAttributeNS('http://www.w3.org/2000/xmlns/', 'xmlns:content', 'http://purl.org/rss/1.0/modules/content/');
-        $root->appendChild($doc->importNode($this->_element, true));
-
-        // Append root node
-        $doc->appendChild($root);
-
-        // Format output
-        $doc->formatOutput = true;
-
-        return $doc->saveXML();
-    }
-
-    /**
-     * Send feed to a http client with the correct header
-     *
-     * @return void
-     * @throws Zend_Feed_Exception if headers have already been sent
-     */
-    public function send()
-    {
-        if (headers_sent()) {
-            /**
-             * @see Zend_Feed_Exception
-             */
-            require_once 'Zend/Feed/Exception.php';
-            throw new Zend_Feed_Exception('Cannot send RSS because headers have already been sent.');
-        }
-
-        header('Content-Type: application/rss+xml; charset=' . $this->_element->ownerDocument->actualEncoding);
-
-        echo $this->saveXml();
     }
 
 }

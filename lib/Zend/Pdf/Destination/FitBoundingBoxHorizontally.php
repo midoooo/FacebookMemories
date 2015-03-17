@@ -50,8 +50,8 @@ class Zend_Pdf_Destination_FitBoundingBoxHorizontally extends Zend_Pdf_Destinati
     /**
      * Create destination object
      *
-     * @param Zend_Pdf_Page|integer $page  Page object or page number
-     * @param float $top   Top edge of displayed page
+     * @param Zend_Pdf_Page|integer $page Page object or page number
+     * @param float $top Top edge of displayed page
      * @return Zend_Pdf_Destination_FitBoundingBoxHorizontally
      * @throws Zend_Pdf_Exception
      */

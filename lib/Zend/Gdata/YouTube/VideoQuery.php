@@ -63,55 +63,55 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
     public function setFeedType($feedType, $videoId = null, $entry = null)
     {
         switch ($feedType) {
-        case 'top rated':
-            $this->_url = Zend_Gdata_YouTube::STANDARD_TOP_RATED_URI;
-            break;
-        case 'most viewed':
-            $this->_url = Zend_Gdata_YouTube::STANDARD_MOST_VIEWED_URI;
-            break;
-        case 'recently featured':
-            $this->_url = Zend_Gdata_YouTube::STANDARD_RECENTLY_FEATURED_URI;
-            break;
-        case 'mobile':
-            $this->_url = Zend_Gdata_YouTube::STANDARD_WATCH_ON_MOBILE_URI;
-            break;
-        case 'related':
-            if ($videoId === null) {
-                require_once 'Zend/Gdata/App/InvalidArgumentException.php';
-                throw new Zend_Gdata_App_InvalidArgumentException(
-                    'Video ID must be set for feed of type: ' . $feedType);
-            } else {
-                $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' . $videoId .
-                    '/related';
-            }
-            break;
-        case 'responses':
-            if ($videoId === null) {
-                require_once 'Zend/Gdata/App/InvalidArgumentException.php';
-                throw new Zend_Gdata_App_Exception(
-                    'Video ID must be set for feed of type: ' . $feedType);
-            } else {
-                $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' . $videoId .
-                    '/responses';
-            }
-            break;
-        case 'comments':
-            if ($videoId === null) {
-                require_once 'Zend/Gdata/App/InvalidArgumentException.php';
-                throw new Zend_Gdata_App_Exception(
-                    'Video ID must be set for feed of type: ' . $feedType);
-            } else {
-                $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' .
-                    $videoId . '/comments';
-                if ($entry !== null) {
-                    $this->_url .= '/' . $entry;
+            case 'top rated':
+                $this->_url = Zend_Gdata_YouTube::STANDARD_TOP_RATED_URI;
+                break;
+            case 'most viewed':
+                $this->_url = Zend_Gdata_YouTube::STANDARD_MOST_VIEWED_URI;
+                break;
+            case 'recently featured':
+                $this->_url = Zend_Gdata_YouTube::STANDARD_RECENTLY_FEATURED_URI;
+                break;
+            case 'mobile':
+                $this->_url = Zend_Gdata_YouTube::STANDARD_WATCH_ON_MOBILE_URI;
+                break;
+            case 'related':
+                if ($videoId === null) {
+                    require_once 'Zend/Gdata/App/InvalidArgumentException.php';
+                    throw new Zend_Gdata_App_InvalidArgumentException(
+                        'Video ID must be set for feed of type: ' . $feedType);
+                } else {
+                    $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' . $videoId .
+                        '/related';
                 }
-            }
-            break;
-        default:
-            require_once 'Zend/Gdata/App/Exception.php';
-            throw new Zend_Gdata_App_Exception('Unknown feed type');
-            break;
+                break;
+            case 'responses':
+                if ($videoId === null) {
+                    require_once 'Zend/Gdata/App/InvalidArgumentException.php';
+                    throw new Zend_Gdata_App_Exception(
+                        'Video ID must be set for feed of type: ' . $feedType);
+                } else {
+                    $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' . $videoId .
+                        '/responses';
+                }
+                break;
+            case 'comments':
+                if ($videoId === null) {
+                    require_once 'Zend/Gdata/App/InvalidArgumentException.php';
+                    throw new Zend_Gdata_App_Exception(
+                        'Video ID must be set for feed of type: ' . $feedType);
+                } else {
+                    $this->_url = Zend_Gdata_YouTube::VIDEO_URI . '/' .
+                        $videoId . '/comments';
+                    if ($entry !== null) {
+                        $this->_url .= '/' . $entry;
+                    }
+                }
+                break;
+            default:
+                require_once 'Zend/Gdata/App/Exception.php';
+                throw new Zend_Gdata_App_Exception('Unknown feed type');
+                break;
         }
     }
 
@@ -124,7 +124,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
      */
     public function setLocation($value)
     {
-        switch($value) {
+        switch ($value) {
             case null:
                 unset($this->_params['location']);
             default:
@@ -136,7 +136,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
                         'URL parameter');
                 }
 
-                foreach($parameters as $param) {
+                foreach ($parameters as $param) {
                     $temp = trim($param);
                     // strip off the optional exclamation mark for numeric check
                     if (substr($temp, -1) == '!') {
@@ -176,7 +176,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
      */
     public function setLocationRadius($value)
     {
-        switch($value) {
+        switch ($value) {
             case null:
                 unset($this->_params['location-radius']);
             default:
@@ -350,7 +350,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
             default:
                 require_once 'Zend/Gdata/App/InvalidArgumentException.php';
                 throw new Zend_Gdata_App_InvalidArgumentException(
-                    'The safeSearch parameter only supports the values '.
+                    'The safeSearch parameter only supports the values ' .
                     '\'none\', \'moderate\' or \'strict\'.');
         }
     }
@@ -443,6 +443,30 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
     }
 
     /**
+     * Returns the generated full query URL, optionally modifying it based on
+     * the protocol version.
+     *
+     * @param integer $majorProtocolVersion The major protocol version
+     * @param integer $minorProtocolVersion The minor protocol version
+     * @return string The URL
+     */
+    public function getQueryUrl($majorProtocolVersion = null,
+                                $minorProtocolVersion = null)
+    {
+        if (isset($this->_url)) {
+            $url = $this->_url;
+        } else {
+            $url = Zend_Gdata_YouTube::VIDEO_URI;
+        }
+        if ($this->getCategory() !== null) {
+            $url .= '/-/' . $this->getCategory();
+        }
+        $url = $url . $this->getQueryString($majorProtocolVersion,
+                $minorProtocolVersion);
+        return $url;
+    }
+
+    /**
      * Generate the query string from the URL parameters, optionally modifying
      * them based on protocol version.
      *
@@ -452,7 +476,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
      * @return string querystring
      */
     public function getQueryString($majorProtocolVersion = null,
-        $minorProtocolVersion = null)
+                                   $minorProtocolVersion = null)
     {
         $queryArray = array();
 
@@ -461,7 +485,7 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
                 continue;
             }
 
-            switch($name) {
+            switch ($name) {
                 case 'location-radius':
                     if ($majorProtocolVersion == 1) {
                         require_once 'Zend/Gdata/App/VersionException.php';
@@ -511,30 +535,6 @@ class Zend_Gdata_YouTube_VideoQuery extends Zend_Gdata_Query
         } else {
             return '';
         }
-    }
-
-    /**
-     * Returns the generated full query URL, optionally modifying it based on
-     * the protocol version.
-     *
-     * @param integer $majorProtocolVersion The major protocol version
-     * @param integer $minorProtocolVersion The minor protocol version
-     * @return string The URL
-     */
-    public function getQueryUrl($majorProtocolVersion = null,
-        $minorProtocolVersion = null)
-    {
-        if (isset($this->_url)) {
-            $url = $this->_url;
-        } else {
-            $url = Zend_Gdata_YouTube::VIDEO_URI;
-        }
-        if ($this->getCategory() !== null) {
-            $url .= '/-/' . $this->getCategory();
-        }
-        $url = $url . $this->getQueryString($majorProtocolVersion,
-            $minorProtocolVersion);
-        return $url;
     }
 
 }

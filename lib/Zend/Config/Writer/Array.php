@@ -40,7 +40,7 @@ class Zend_Config_Writer_Array extends Zend_Config_Writer_FileAbstract
      */
     public function render()
     {
-        $data        = $this->_config->toArray();
+        $data = $this->_config->toArray();
         $sectionName = $this->_config->getSectionName();
 
         if (is_string($sectionName)) {
@@ -48,7 +48,7 @@ class Zend_Config_Writer_Array extends Zend_Config_Writer_FileAbstract
         }
 
         $arrayString = "<?php\n"
-                     . "return " . var_export($data, true) . ";\n";
+            . "return " . var_export($data, true) . ";\n";
 
         return $arrayString;
     }

@@ -28,7 +28,7 @@
  * @license    http://framework.zend.com/license/new-bsd     New BSD License
  * @version    $Id$
  */
-class Zend_Dom_Query_Result implements Iterator,Countable
+class Zend_Dom_Query_Result implements Iterator, Countable
 {
     /**
      * Number of results
@@ -80,10 +80,10 @@ class Zend_Dom_Query_Result implements Iterator,Countable
      */
     public function  __construct($cssQuery, $xpathQuery, DOMDocument $document, DOMNodeList $nodeList)
     {
-        $this->_cssQuery   = $cssQuery;
+        $this->_cssQuery = $cssQuery;
         $this->_xpathQuery = $xpathQuery;
-        $this->_document   = $document;
-        $this->_nodeList   = $nodeList;
+        $this->_document = $document;
+        $this->_nodeList = $nodeList;
     }
 
     /**

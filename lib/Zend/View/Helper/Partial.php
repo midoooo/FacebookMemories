@@ -87,8 +87,8 @@ class Zend_View_Helper_Partial extends Zend_View_Helper_Abstract
             $viewsDir = dirname($moduleDir) . '/views';
             $view->addBasePath($viewsDir);
         } elseif ((null == $model) && (null !== $module)
-            && (is_array($module) || is_object($module)))
-        {
+            && (is_array($module) || is_object($module))
+        ) {
             $model = $module;
         }
 
@@ -122,23 +122,6 @@ class Zend_View_Helper_Partial extends Zend_View_Helper_Abstract
     }
 
     /**
-     * Set object key
-     *
-     * @param  string $key
-     * @return Zend_View_Helper_Partial
-     */
-    public function setObjectKey($key)
-    {
-        if (null === $key) {
-            $this->_objectKey = null;
-        } else {
-            $this->_objectKey = (string) $key;
-        }
-
-        return $this;
-    }
-
-    /**
      * Retrieve object key
      *
      * The objectKey is the variable to which an object in the iterator will be
@@ -149,5 +132,22 @@ class Zend_View_Helper_Partial extends Zend_View_Helper_Abstract
     public function getObjectKey()
     {
         return $this->_objectKey;
+    }
+
+    /**
+     * Set object key
+     *
+     * @param  string $key
+     * @return Zend_View_Helper_Partial
+     */
+    public function setObjectKey($key)
+    {
+        if (null === $key) {
+            $this->_objectKey = null;
+        } else {
+            $this->_objectKey = (string)$key;
+        }
+
+        return $this;
     }
 }

@@ -66,6 +66,44 @@ class Zend_Json_Server_Request
     protected $_version = '1.0';
 
     /**
+     * Retrieve param by index or key
+     *
+     * @param  int|string $index
+     * @return mixed|null Null when not found
+     */
+    public function getParam($index)
+    {
+        if (array_key_exists($index, $this->_params)) {
+            return $this->_params[$index];
+        }
+
+        return null;
+    }
+
+    /**
+     * Was a bad method provided?
+     *
+     * @return bool
+     */
+    public function isMethodError()
+    {
+        return $this->_isMethodError;
+    }
+
+    /**
+     * Set request state based on JSON
+     *
+     * @param  string $json
+     * @return void
+     */
+    public function loadJson($json)
+    {
+        require_once 'Zend/Json.php';
+        $options = Zend_Json::decode($json);
+        $this->setOptions($options);
+    }
+
+    /**
      * Set request state
      *
      * @param  array $options
@@ -86,170 +124,13 @@ class Zend_Json_Server_Request
     }
 
     /**
-     * Add a parameter to the request
-     *
-     * @param  mixed $value
-     * @param  string $key
-     * @return Zend_Json_Server_Request
-     */
-    public function addParam($value, $key = null)
-    {
-        if ((null === $key) || !is_string($key)) {
-            $index = count($this->_params);
-            $this->_params[$index] = $value;
-        } else {
-            $this->_params[$key] = $value;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Add many params
-     *
-     * @param  array $params
-     * @return Zend_Json_Server_Request
-     */
-    public function addParams(array $params)
-    {
-        foreach ($params as $key => $value) {
-            $this->addParam($value, $key);
-        }
-        return $this;
-    }
-
-    /**
-     * Overwrite params
-     *
-     * @param  array $params
-     * @return Zend_Json_Server_Request
-     */
-    public function setParams(array $params)
-    {
-        $this->_params = array();
-        return $this->addParams($params);
-    }
-
-    /**
-     * Retrieve param by index or key
-     *
-     * @param  int|string $index
-     * @return mixed|null Null when not found
-     */
-    public function getParam($index)
-    {
-        if (array_key_exists($index, $this->_params)) {
-            return $this->_params[$index];
-        }
-
-        return null;
-    }
-
-    /**
-     * Retrieve parameters
-     *
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->_params;
-    }
-
-    /**
-     * Set request method
-     *
-     * @param  string $name
-     * @return Zend_Json_Server_Request
-     */
-    public function setMethod($name)
-    {
-        if (!preg_match($this->_methodRegex, $name)) {
-            $this->_isMethodError = true;
-        } else {
-            $this->_method = $name;
-        }
-        return $this;
-    }
-
-    /**
-     * Get request method name
+     * Cast request to string (JSON)
      *
      * @return string
      */
-    public function getMethod()
+    public function __toString()
     {
-        return $this->_method;
-    }
-
-    /**
-     * Was a bad method provided?
-     *
-     * @return bool
-     */
-    public function isMethodError()
-    {
-        return $this->_isMethodError;
-    }
-
-    /**
-     * Set request identifier
-     *
-     * @param  mixed $name
-     * @return Zend_Json_Server_Request
-     */
-    public function setId($name)
-    {
-        $this->_id = (string) $name;
-        return $this;
-    }
-
-    /**
-     * Retrieve request identifier
-     *
-     * @return mixed
-     */
-    public function getId()
-    {
-        return $this->_id;
-    }
-
-    /**
-     * Set JSON-RPC version
-     *
-     * @param  string $version
-     * @return Zend_Json_Server_Request
-     */
-    public function setVersion($version)
-    {
-        if ('2.0' == $version) {
-            $this->_version = '2.0';
-        } else {
-            $this->_version = '1.0';
-        }
-        return $this;
-    }
-
-    /**
-     * Retrieve JSON-RPC version
-     *
-     * @return string
-     */
-    public function getVersion()
-    {
-        return $this->_version;
-    }
-
-    /**
-     * Set request state based on JSON
-     *
-     * @param  string $json
-     * @return void
-     */
-    public function loadJson($json)
-    {
-        require_once 'Zend/Json.php';
-        $options = Zend_Json::decode($json);
-        $this->setOptions($options);
+        return $this->toJson();
     }
 
     /**
@@ -278,12 +159,131 @@ class Zend_Json_Server_Request
     }
 
     /**
-     * Cast request to string (JSON)
+     * Get request method name
      *
      * @return string
      */
-    public function __toString()
+    public function getMethod()
     {
-        return $this->toJson();
+        return $this->_method;
+    }
+
+    /**
+     * Set request method
+     *
+     * @param  string $name
+     * @return Zend_Json_Server_Request
+     */
+    public function setMethod($name)
+    {
+        if (!preg_match($this->_methodRegex, $name)) {
+            $this->_isMethodError = true;
+        } else {
+            $this->_method = $name;
+        }
+        return $this;
+    }
+
+    /**
+     * Retrieve request identifier
+     *
+     * @return mixed
+     */
+    public function getId()
+    {
+        return $this->_id;
+    }
+
+    /**
+     * Set request identifier
+     *
+     * @param  mixed $name
+     * @return Zend_Json_Server_Request
+     */
+    public function setId($name)
+    {
+        $this->_id = (string)$name;
+        return $this;
+    }
+
+    /**
+     * Retrieve parameters
+     *
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->_params;
+    }
+
+    /**
+     * Overwrite params
+     *
+     * @param  array $params
+     * @return Zend_Json_Server_Request
+     */
+    public function setParams(array $params)
+    {
+        $this->_params = array();
+        return $this->addParams($params);
+    }
+
+    /**
+     * Add many params
+     *
+     * @param  array $params
+     * @return Zend_Json_Server_Request
+     */
+    public function addParams(array $params)
+    {
+        foreach ($params as $key => $value) {
+            $this->addParam($value, $key);
+        }
+        return $this;
+    }
+
+    /**
+     * Add a parameter to the request
+     *
+     * @param  mixed $value
+     * @param  string $key
+     * @return Zend_Json_Server_Request
+     */
+    public function addParam($value, $key = null)
+    {
+        if ((null === $key) || !is_string($key)) {
+            $index = count($this->_params);
+            $this->_params[$index] = $value;
+        } else {
+            $this->_params[$key] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Retrieve JSON-RPC version
+     *
+     * @return string
+     */
+    public function getVersion()
+    {
+        return $this->_version;
+    }
+
+    /**
+     * Set JSON-RPC version
+     *
+     * @param  string $version
+     * @return Zend_Json_Server_Request
+     */
+    public function setVersion($version)
+    {
+        if ('2.0' == $version) {
+            $this->_version = '2.0';
+        } else {
+            $this->_version = '1.0';
+        }
+        return $this;
     }
 }

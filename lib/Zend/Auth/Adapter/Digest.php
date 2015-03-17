@@ -102,7 +102,7 @@ class Zend_Auth_Adapter_Digest implements Zend_Auth_Adapter_Interface
      */
     public function setFilename($filename)
     {
-        $this->_filename = (string) $filename;
+        $this->_filename = (string)$filename;
         return $this;
     }
 
@@ -124,7 +124,7 @@ class Zend_Auth_Adapter_Digest implements Zend_Auth_Adapter_Interface
      */
     public function setRealm($realm)
     {
-        $this->_realm = (string) $realm;
+        $this->_realm = (string)$realm;
         return $this;
     }
 
@@ -146,7 +146,7 @@ class Zend_Auth_Adapter_Digest implements Zend_Auth_Adapter_Interface
      */
     public function setUsername($username)
     {
-        $this->_username = (string) $username;
+        $this->_username = (string)$username;
         return $this;
     }
 
@@ -168,7 +168,7 @@ class Zend_Auth_Adapter_Digest implements Zend_Auth_Adapter_Interface
      */
     public function setPassword($password)
     {
-        $this->_password = (string) $password;
+        $this->_password = (string)$password;
         return $this;
     }
 
@@ -199,17 +199,17 @@ class Zend_Auth_Adapter_Digest implements Zend_Auth_Adapter_Interface
             throw new Zend_Auth_Adapter_Exception("Cannot open '$this->_filename' for reading");
         }
 
-        $id       = "$this->_username:$this->_realm";
+        $id = "$this->_username:$this->_realm";
         $idLength = strlen($id);
 
         $result = array(
-            'code'  => Zend_Auth_Result::FAILURE,
+            'code' => Zend_Auth_Result::FAILURE,
             'identity' => array(
-                'realm'    => $this->_realm,
+                'realm' => $this->_realm,
                 'username' => $this->_username,
-                ),
+            ),
             'messages' => array()
-            );
+        );
 
         while ($line = trim(fgets($fileHandle))) {
             if (substr($line, 0, $idLength) === $id) {

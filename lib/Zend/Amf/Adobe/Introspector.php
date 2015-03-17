@@ -88,7 +88,7 @@ class Zend_Amf_Adobe_Introspector
         }
 
         // Transform com.foo.Bar into com_foo_Bar
-        $serviceClass = str_replace('.' , '_', $serviceClass);
+        $serviceClass = str_replace('.', '_', $serviceClass);
 
         // Introspect!
         if (!class_exists($serviceClass)) {
@@ -100,7 +100,7 @@ class Zend_Amf_Adobe_Introspector
         $serv->setAttribute('xmlns', 'http://ns.adobe.com/flex/service-description/2008');
 
         $this->_types = $this->_xml->createElement('types');
-        $this->_ops   = $this->_xml->createElement('operations');
+        $this->_ops = $this->_xml->createElement('operations');
 
         $r = Zend_Server_Reflection::reflectClass($serviceClass);
         $this->_addService($r, $this->_ops);
@@ -113,45 +113,32 @@ class Zend_Amf_Adobe_Introspector
     }
 
     /**
-     * Authentication handler
+     * Return error with error message
      *
-     * @param  Zend_Acl $acl
-     * @return unknown_type
+     * @param  string $msg Error message
+     * @return string
      */
-    public function initAcl(Zend_Acl $acl)
+    protected function _returnError($msg)
     {
-        return false; // we do not need auth for this class
+        return 'ERROR: $msg';
     }
 
     /**
-     * Generate map of public class attributes
+     * Get the array of service directories
      *
-     * @param  string $typename type name
-     * @param  DOMElement $typexml target XML element
-     * @return void
+     * @return array Service class directories
      */
-    protected function _addClassAttributes($typename, DOMElement $typexml)
+    protected function _getServicePath()
     {
-        // Do not try to autoload here because _phpTypeToAS should
-        // have already attempted to load this class
-        if (!class_exists($typename, false)) {
-            return;
+        if (isset($this->_options['server'])) {
+            return $this->_options['server']->getDirectory();
         }
 
-        $rc = new Zend_Reflection_Class($typename);
-        foreach ($rc->getProperties() as $prop) {
-            if (!$prop->isPublic()) {
-                continue;
-            }
-
-            $propxml = $this->_xml->createElement('property');
-            $propxml->setAttribute('name', $prop->getName());
-
-            $type = $this->_registerType($this->_getPropertyType($prop));
-            $propxml->setAttribute('type', $type);
-
-            $typexml->appendChild($propxml);
+        if (isset($this->_options['directories'])) {
+            return $this->_options['directories'];
         }
+
+        return array();
     }
 
     /**
@@ -190,7 +177,7 @@ class Zend_Amf_Adobe_Introspector
                     $ptype = $this->_registerType($type);
                     $arg->setAttribute('type', $ptype);
 
-                    if($param->isDefaultValueAvailable()) {
+                    if ($param->isDefaultValueAvailable()) {
                         $arg->setAttribute('defaultvalue', $param->getDefaultValue());
                     }
 
@@ -200,69 +187,6 @@ class Zend_Amf_Adobe_Introspector
                 $target->appendChild($op);
             }
         }
-    }
-
-    /**
-     * Extract type of the property from DocBlock
-     *
-     * @param  Zend_Reflection_Property $prop reflection property object
-     * @return string Property type
-     */
-    protected function _getPropertyType(Zend_Reflection_Property $prop)
-    {
-        $docBlock = $prop->getDocComment();
-
-        if (!$docBlock) {
-            return 'Unknown';
-        }
-
-        if (!$docBlock->hasTag('var')) {
-            return 'Unknown';
-        }
-
-        $tag = $docBlock->getTag('var');
-        return trim($tag->getDescription());
-    }
-
-    /**
-     * Get the array of service directories
-     *
-     * @return array Service class directories
-     */
-    protected function _getServicePath()
-    {
-        if (isset($this->_options['server'])) {
-            return $this->_options['server']->getDirectory();
-        }
-
-        if (isset($this->_options['directories'])) {
-            return $this->_options['directories'];
-        }
-
-        return array();
-    }
-
-    /**
-     * Map from PHP type name to AS type name
-     *
-     * @param  string $typename PHP type name
-     * @return string AS type name
-     */
-    protected function _phpTypeToAS($typename)
-    {
-        if (class_exists($typename)) {
-            $vars = get_class_vars($typename);
-
-            if (isset($vars['_explicitType'])) {
-                return $vars['_explicitType'];
-            }
-        }
-
-        if (false !== ($asname = Zend_Amf_Parse_TypeLoader::getMappedClassName($typename))) {
-            return $asname;
-        }
-
-        return $typename;
     }
 
     /**
@@ -305,14 +229,90 @@ class Zend_Amf_Adobe_Introspector
         return $asTypeName;
     }
 
-   /**
-     * Return error with error message
+    /**
+     * Map from PHP type name to AS type name
      *
-     * @param  string $msg Error message
-     * @return string
+     * @param  string $typename PHP type name
+     * @return string AS type name
      */
-    protected function _returnError($msg)
+    protected function _phpTypeToAS($typename)
     {
-        return 'ERROR: $msg';
+        if (class_exists($typename)) {
+            $vars = get_class_vars($typename);
+
+            if (isset($vars['_explicitType'])) {
+                return $vars['_explicitType'];
+            }
+        }
+
+        if (false !== ($asname = Zend_Amf_Parse_TypeLoader::getMappedClassName($typename))) {
+            return $asname;
+        }
+
+        return $typename;
+    }
+
+    /**
+     * Generate map of public class attributes
+     *
+     * @param  string $typename type name
+     * @param  DOMElement $typexml target XML element
+     * @return void
+     */
+    protected function _addClassAttributes($typename, DOMElement $typexml)
+    {
+        // Do not try to autoload here because _phpTypeToAS should
+        // have already attempted to load this class
+        if (!class_exists($typename, false)) {
+            return;
+        }
+
+        $rc = new Zend_Reflection_Class($typename);
+        foreach ($rc->getProperties() as $prop) {
+            if (!$prop->isPublic()) {
+                continue;
+            }
+
+            $propxml = $this->_xml->createElement('property');
+            $propxml->setAttribute('name', $prop->getName());
+
+            $type = $this->_registerType($this->_getPropertyType($prop));
+            $propxml->setAttribute('type', $type);
+
+            $typexml->appendChild($propxml);
+        }
+    }
+
+    /**
+     * Extract type of the property from DocBlock
+     *
+     * @param  Zend_Reflection_Property $prop reflection property object
+     * @return string Property type
+     */
+    protected function _getPropertyType(Zend_Reflection_Property $prop)
+    {
+        $docBlock = $prop->getDocComment();
+
+        if (!$docBlock) {
+            return 'Unknown';
+        }
+
+        if (!$docBlock->hasTag('var')) {
+            return 'Unknown';
+        }
+
+        $tag = $docBlock->getTag('var');
+        return trim($tag->getDescription());
+    }
+
+    /**
+     * Authentication handler
+     *
+     * @param  Zend_Acl $acl
+     * @return unknown_type
+     */
+    public function initAcl(Zend_Acl $acl)
+    {
+        return false; // we do not need auth for this class
     }
 }

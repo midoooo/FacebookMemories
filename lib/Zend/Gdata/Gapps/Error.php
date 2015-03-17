@@ -74,7 +74,8 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
     protected $_invalidInput = null;
 
     public function __construct($errorCode = null, $reason = null,
-            $invalidInput = null) {
+                                $invalidInput = null)
+    {
         parent::__construct("Google Apps error received: $errorCode ($reason)");
         $this->_errorCode = $errorCode;
         $this->_reason = $reason;
@@ -82,14 +83,38 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
     }
 
     /**
-     * Set the error code for this exception. For more information about
-     * error codes, see getErrorCode.
+     * Retrieves a DOMElement which corresponds to this element and all
+     * child properties.  This is used to build an entry back into a DOM
+     * and eventually XML text for application storage/persistence.
      *
-     * @see getErrorCode
-     * @param integer $value The new value for the error code.
+     * @param DOMDocument $doc The DOMDocument used to construct DOMElements
+     * @return DOMElement The DOMElement representing this element and all
+     *          child properties.
      */
-    public function setErrorCode($value) {
-       $this->_errorCode = $value;
+    public function getDOM($doc = null, $majorVersion = 1, $minorVersion = null)
+    {
+        $element = parent::getDOM($doc, $majorVersion, $minorVersion);
+        if ($this->_errorCode !== null) {
+            $element->setAttribute('errorCode', $this->_errorCode);
+        }
+        if ($this->_reason !== null) {
+            $element->setAttribute('reason', $this->_reason);
+        }
+        if ($this->_invalidInput !== null) {
+            $element->setAttribute('invalidInput', $this->_invalidInput);
+        }
+        return $element;
+    }
+
+    /**
+     * Get a human readable version of this exception.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return "Error " . $this->getErrorCode() . ": " . $this->getReason() .
+        "\n\tInvalid Input: \"" . $this->getInvalidInput() . "\"";
     }
 
     /**
@@ -128,18 +153,21 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
      * @see setErrorCode
      * @return integer The error code returned by the Google Apps server.
      */
-    public function getErrorCode() {
+    public function getErrorCode()
+    {
         return $this->_errorCode;
     }
 
     /**
-     * Set human-readable text describing the reason this exception occurred.
+     * Set the error code for this exception. For more information about
+     * error codes, see getErrorCode.
      *
-     * @see getReason
-     * @param string $value The reason this exception occurred.
+     * @see getErrorCode
+     * @param integer $value The new value for the error code.
      */
-    public function setReason($value) {
-       $this->_reason = $value;
+    public function setErrorCode($value)
+    {
+        $this->_errorCode = $value;
     }
 
     /**
@@ -148,18 +176,20 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
      * @see setReason
      * @return string The reason this exception occurred.
      */
-    public function getReason() {
-       return $this->_reason;
+    public function getReason()
+    {
+        return $this->_reason;
     }
 
     /**
-     * Set the invalid input which caused this exception.
+     * Set human-readable text describing the reason this exception occurred.
      *
-     * @see getInvalidInput
-     * @param string $value The invalid input that triggered this exception.
+     * @see getReason
+     * @param string $value The reason this exception occurred.
      */
-    public function setInvalidInput($value) {
-       $this->_invalidInput = $value;
+    public function setReason($value)
+    {
+        $this->_reason = $value;
     }
 
     /**
@@ -168,32 +198,20 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
      * @see setInvalidInput
      * @return string The reason this exception occurred.
      */
-    public function getInvalidInput() {
-       return $this->_invalidInput;
+    public function getInvalidInput()
+    {
+        return $this->_invalidInput;
     }
 
     /**
-     * Retrieves a DOMElement which corresponds to this element and all
-     * child properties.  This is used to build an entry back into a DOM
-     * and eventually XML text for application storage/persistence.
+     * Set the invalid input which caused this exception.
      *
-     * @param DOMDocument $doc The DOMDocument used to construct DOMElements
-     * @return DOMElement The DOMElement representing this element and all
-     *          child properties.
+     * @see getInvalidInput
+     * @param string $value The invalid input that triggered this exception.
      */
-    public function getDOM($doc = null, $majorVersion = 1, $minorVersion = null)
+    public function setInvalidInput($value)
     {
-        $element = parent::getDOM($doc, $majorVersion, $minorVersion);
-        if ($this->_errorCode !== null) {
-            $element->setAttribute('errorCode', $this->_errorCode);
-        }
-        if ($this->_reason !== null) {
-            $element->setAttribute('reason', $this->_reason);
-        }
-        if ($this->_invalidInput !== null) {
-            $element->setAttribute('invalidInput', $this->_invalidInput);
-        }
-        return $element;
+        $this->_invalidInput = $value;
     }
 
     /**
@@ -206,28 +224,18 @@ class Zend_Gdata_Gapps_Error extends Zend_Gdata_App_Base
     protected function takeAttributeFromDOM($attribute)
     {
         switch ($attribute->localName) {
-        case 'errorCode':
-            $this->_errorCode = $attribute->nodeValue;
-            break;
-        case 'reason':
-            $this->_reason = $attribute->nodeValue;
-            break;
-        case 'invalidInput':
-            $this->_invalidInput = $attribute->nodeValue;
-            break;
-        default:
-            parent::takeAttributeFromDOM($attribute);
+            case 'errorCode':
+                $this->_errorCode = $attribute->nodeValue;
+                break;
+            case 'reason':
+                $this->_reason = $attribute->nodeValue;
+                break;
+            case 'invalidInput':
+                $this->_invalidInput = $attribute->nodeValue;
+                break;
+            default:
+                parent::takeAttributeFromDOM($attribute);
         }
-    }
-
-    /**
-     * Get a human readable version of this exception.
-     *
-     * @return string
-     */
-    public function __toString() {
-        return "Error " . $this->getErrorCode() . ": " . $this->getReason() .
-            "\n\tInvalid Input: \"" . $this->getInvalidInput() . "\"";
     }
 
 }

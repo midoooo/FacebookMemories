@@ -230,92 +230,6 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
-     * Creates individual objects of the appropriate type and stores
-     * them in this object based upon DOM data.
-     *
-     * @param DOMNode $child The DOMNode to process.
-     */
-    protected function takeChildFromDOM($child)
-    {
-        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
-        switch ($absoluteNodeName) {
-        case $this->lookupNamespace('dc') . ':' . 'creator':
-            $creators = new Zend_Gdata_DublinCore_Extension_Creator();
-            $creators->transferFromDOM($child);
-            $this->_creators[] = $creators;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'date':
-            $dates = new Zend_Gdata_DublinCore_Extension_Date();
-            $dates->transferFromDOM($child);
-            $this->_dates[] = $dates;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'description':
-            $descriptions = new Zend_Gdata_DublinCore_Extension_Description();
-            $descriptions->transferFromDOM($child);
-            $this->_descriptions[] = $descriptions;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'format':
-            $formats = new Zend_Gdata_DublinCore_Extension_Format();
-            $formats->transferFromDOM($child);
-            $this->_formats[] = $formats;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'identifier':
-            $identifiers = new Zend_Gdata_DublinCore_Extension_Identifier();
-            $identifiers->transferFromDOM($child);
-            $this->_identifiers[] = $identifiers;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'language':
-            $languages = new Zend_Gdata_DublinCore_Extension_Language();
-            $languages->transferFromDOM($child);
-            $this->_languages[] = $languages;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'publisher':
-            $publishers = new Zend_Gdata_DublinCore_Extension_Publisher();
-            $publishers->transferFromDOM($child);
-            $this->_publishers[] = $publishers;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'subject':
-            $subjects = new Zend_Gdata_DublinCore_Extension_Subject();
-            $subjects->transferFromDOM($child);
-            $this->_subjects[] = $subjects;
-            break;
-        case $this->lookupNamespace('dc') . ':' . 'title':
-            $titles = new Zend_Gdata_DublinCore_Extension_Title();
-            $titles->transferFromDOM($child);
-            $this->_titles[] = $titles;
-            break;
-        case $this->lookupNamespace('gd') . ':' . 'comments':
-            $comments = new Zend_Gdata_Extension_Comments();
-            $comments->transferFromDOM($child);
-            $this->_comments = $comments;
-            break;
-        case $this->lookupNamespace('gbs') . ':' . 'embeddability':
-            $embeddability = new Zend_Gdata_Books_Extension_Embeddability();
-            $embeddability->transferFromDOM($child);
-            $this->_embeddability = $embeddability;
-            break;
-        case $this->lookupNamespace('gd') . ':' . 'rating':
-            $rating = new Zend_Gdata_Extension_Rating();
-            $rating->transferFromDOM($child);
-            $this->_rating = $rating;
-            break;
-        case $this->lookupNamespace('gbs') . ':' . 'review':
-            $review = new Zend_Gdata_Books_Extension_Review();
-            $review->transferFromDOM($child);
-            $this->_review = $review;
-            break;
-        case $this->lookupNamespace('gbs') . ':' . 'viewability':
-            $viewability = new Zend_Gdata_Books_Extension_Viewability();
-            $viewability->transferFromDOM($child);
-            $this->_viewability = $viewability;
-            break;
-        default:
-            parent::takeChildFromDOM($child);
-            break;
-        }
-    }
-
-    /**
      * Returns the Comments class
      *
      * @return Zend_Gdata_Extension_Comments|null The comments
@@ -323,136 +237,6 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     public function getComments()
     {
         return $this->_comments;
-    }
-
-    /**
-     * Returns the creators
-     *
-     * @return array The creators
-     */
-    public function getCreators()
-    {
-        return $this->_creators;
-    }
-
-    /**
-     * Returns the dates
-     *
-     * @return array The dates
-     */
-    public function getDates()
-    {
-        return $this->_dates;
-    }
-
-    /**
-     * Returns the descriptions
-     *
-     * @return array The descriptions
-     */
-    public function getDescriptions()
-    {
-        return $this->_descriptions;
-    }
-
-    /**
-     * Returns the embeddability
-     *
-     * @return Zend_Gdata_Books_Extension_Embeddability|null The embeddability
-     */
-    public function getEmbeddability()
-    {
-        return $this->_embeddability;
-    }
-
-    /**
-     * Returns the formats
-     *
-     * @return array The formats
-     */
-    public function getFormats()
-    {
-        return $this->_formats;
-    }
-
-    /**
-     * Returns the identifiers
-     *
-     * @return array The identifiers
-     */
-    public function getIdentifiers()
-    {
-        return $this->_identifiers;
-    }
-
-    /**
-     * Returns the languages
-     *
-     * @return array The languages
-     */
-    public function getLanguages()
-    {
-        return $this->_languages;
-    }
-
-    /**
-     * Returns the publishers
-     *
-     * @return array The publishers
-     */
-    public function getPublishers()
-    {
-        return $this->_publishers;
-    }
-
-    /**
-     * Returns the rating
-     *
-     * @return Zend_Gdata_Extension_Rating|null The rating
-     */
-    public function getRating()
-    {
-        return $this->_rating;
-    }
-
-    /**
-     * Returns the review
-     *
-     * @return Zend_Gdata_Books_Extension_Review|null The review
-     */
-    public function getReview()
-    {
-        return $this->_review;
-    }
-
-    /**
-     * Returns the subjects
-     *
-     * @return array The subjects
-     */
-    public function getSubjects()
-    {
-        return $this->_subjects;
-    }
-
-    /**
-     * Returns the titles
-     *
-     * @return array The titles
-     */
-    public function getTitles()
-    {
-        return $this->_titles;
-    }
-
-    /**
-     * Returns the viewability
-     *
-     * @return Zend_Gdata_Books_Extension_Viewability|null The viewability
-     */
-    public function getViewability()
-    {
-        return $this->_viewability;
     }
 
     /**
@@ -468,6 +252,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the creators
+     *
+     * @return array The creators
+     */
+    public function getCreators()
+    {
+        return $this->_creators;
+    }
+
+    /**
      * Sets the creators
      *
      * @param array $creators Creators|null
@@ -477,6 +271,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_creators = $creators;
         return $this;
+    }
+
+    /**
+     * Returns the dates
+     *
+     * @return array The dates
+     */
+    public function getDates()
+    {
+        return $this->_dates;
     }
 
     /**
@@ -492,6 +296,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the descriptions
+     *
+     * @return array The descriptions
+     */
+    public function getDescriptions()
+    {
+        return $this->_descriptions;
+    }
+
+    /**
      * Sets the descriptions
      *
      * @param array $descriptions descriptions
@@ -501,6 +315,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_descriptions = $descriptions;
         return $this;
+    }
+
+    /**
+     * Returns the embeddability
+     *
+     * @return Zend_Gdata_Books_Extension_Embeddability|null The embeddability
+     */
+    public function getEmbeddability()
+    {
+        return $this->_embeddability;
     }
 
     /**
@@ -517,6 +341,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the formats
+     *
+     * @return array The formats
+     */
+    public function getFormats()
+    {
+        return $this->_formats;
+    }
+
+    /**
      * Sets the formats
      *
      * @param array $formats formats
@@ -526,6 +360,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_formats = $formats;
         return $this;
+    }
+
+    /**
+     * Returns the identifiers
+     *
+     * @return array The identifiers
+     */
+    public function getIdentifiers()
+    {
+        return $this->_identifiers;
     }
 
     /**
@@ -541,6 +385,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the languages
+     *
+     * @return array The languages
+     */
+    public function getLanguages()
+    {
+        return $this->_languages;
+    }
+
+    /**
      * Sets the languages
      *
      * @param array $languages languages
@@ -550,6 +404,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_languages = $languages;
         return $this;
+    }
+
+    /**
+     * Returns the publishers
+     *
+     * @return array The publishers
+     */
+    public function getPublishers()
+    {
+        return $this->_publishers;
     }
 
     /**
@@ -565,6 +429,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the rating
+     *
+     * @return Zend_Gdata_Extension_Rating|null The rating
+     */
+    public function getRating()
+    {
+        return $this->_rating;
+    }
+
+    /**
      * Sets the rating
      *
      * @param Zend_Gdata_Extension_Rating|null $rating rating
@@ -574,6 +448,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_rating = $rating;
         return $this;
+    }
+
+    /**
+     * Returns the review
+     *
+     * @return Zend_Gdata_Books_Extension_Review|null The review
+     */
+    public function getReview()
+    {
+        return $this->_review;
     }
 
     /**
@@ -589,6 +473,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the subjects
+     *
+     * @return array The subjects
+     */
+    public function getSubjects()
+    {
+        return $this->_subjects;
+    }
+
+    /**
      * Sets the subjects
      *
      * @param array $subjects subjects
@@ -598,6 +492,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     {
         $this->_subjects = $subjects;
         return $this;
+    }
+
+    /**
+     * Returns the titles
+     *
+     * @return array The titles
+     */
+    public function getTitles()
+    {
+        return $this->_titles;
     }
 
     /**
@@ -613,6 +517,16 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     }
 
     /**
+     * Returns the viewability
+     *
+     * @return Zend_Gdata_Books_Extension_Viewability|null The viewability
+     */
+    public function getViewability()
+    {
+        return $this->_viewability;
+    }
+
+    /**
      * Sets the viewability
      *
      * @param Zend_Gdata_Books_Extension_Viewability|null $viewability
@@ -624,7 +538,6 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
         $this->_viewability = $viewability;
         return $this;
     }
-
 
     /**
      * Gets the volume ID based upon the atom:id value
@@ -640,7 +553,7 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
             require_once 'Zend/Gdata/App/Exception.php';
             throw new Zend_Gdata_App_Exception('Slash not found in atom:id');
         } else {
-            return substr($fullId, strrpos($fullId,'/') + 1);
+            return substr($fullId, strrpos($fullId, '/') + 1);
         }
     }
 
@@ -682,6 +595,92 @@ class Zend_Gdata_Books_VolumeEntry extends Zend_Gdata_Entry
     public function getAnnotationLink()
     {
         return $this->getLink(self::ANNOTATION_LINK_REL);
+    }
+
+    /**
+     * Creates individual objects of the appropriate type and stores
+     * them in this object based upon DOM data.
+     *
+     * @param DOMNode $child The DOMNode to process.
+     */
+    protected function takeChildFromDOM($child)
+    {
+        $absoluteNodeName = $child->namespaceURI . ':' . $child->localName;
+        switch ($absoluteNodeName) {
+            case $this->lookupNamespace('dc') . ':' . 'creator':
+                $creators = new Zend_Gdata_DublinCore_Extension_Creator();
+                $creators->transferFromDOM($child);
+                $this->_creators[] = $creators;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'date':
+                $dates = new Zend_Gdata_DublinCore_Extension_Date();
+                $dates->transferFromDOM($child);
+                $this->_dates[] = $dates;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'description':
+                $descriptions = new Zend_Gdata_DublinCore_Extension_Description();
+                $descriptions->transferFromDOM($child);
+                $this->_descriptions[] = $descriptions;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'format':
+                $formats = new Zend_Gdata_DublinCore_Extension_Format();
+                $formats->transferFromDOM($child);
+                $this->_formats[] = $formats;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'identifier':
+                $identifiers = new Zend_Gdata_DublinCore_Extension_Identifier();
+                $identifiers->transferFromDOM($child);
+                $this->_identifiers[] = $identifiers;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'language':
+                $languages = new Zend_Gdata_DublinCore_Extension_Language();
+                $languages->transferFromDOM($child);
+                $this->_languages[] = $languages;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'publisher':
+                $publishers = new Zend_Gdata_DublinCore_Extension_Publisher();
+                $publishers->transferFromDOM($child);
+                $this->_publishers[] = $publishers;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'subject':
+                $subjects = new Zend_Gdata_DublinCore_Extension_Subject();
+                $subjects->transferFromDOM($child);
+                $this->_subjects[] = $subjects;
+                break;
+            case $this->lookupNamespace('dc') . ':' . 'title':
+                $titles = new Zend_Gdata_DublinCore_Extension_Title();
+                $titles->transferFromDOM($child);
+                $this->_titles[] = $titles;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'comments':
+                $comments = new Zend_Gdata_Extension_Comments();
+                $comments->transferFromDOM($child);
+                $this->_comments = $comments;
+                break;
+            case $this->lookupNamespace('gbs') . ':' . 'embeddability':
+                $embeddability = new Zend_Gdata_Books_Extension_Embeddability();
+                $embeddability->transferFromDOM($child);
+                $this->_embeddability = $embeddability;
+                break;
+            case $this->lookupNamespace('gd') . ':' . 'rating':
+                $rating = new Zend_Gdata_Extension_Rating();
+                $rating->transferFromDOM($child);
+                $this->_rating = $rating;
+                break;
+            case $this->lookupNamespace('gbs') . ':' . 'review':
+                $review = new Zend_Gdata_Books_Extension_Review();
+                $review->transferFromDOM($child);
+                $this->_review = $review;
+                break;
+            case $this->lookupNamespace('gbs') . ':' . 'viewability':
+                $viewability = new Zend_Gdata_Books_Extension_Viewability();
+                $viewability->transferFromDOM($child);
+                $this->_viewability = $viewability;
+                break;
+            default:
+                parent::takeChildFromDOM($child);
+                break;
+        }
     }
 
 }
