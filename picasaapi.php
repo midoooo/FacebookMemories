@@ -51,7 +51,6 @@ if (isset($_GET['token']) && isset($_SESSION['userid'])) {
             $conn->close();
             header("Location: index.php");
         }
-
     }
 
 

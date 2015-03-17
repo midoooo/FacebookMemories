@@ -177,15 +177,39 @@ try {
                     <div class="panel-heading">Download/Move Bulk Albums</div>
                     <div class="panel-body">
 
-                        <input type="button" class="downloadSelected" disabled="true" value="Download Selected Albums"
-                               name="downloadSelected" id="downloadSelected"><br/>
-                        <input type="button" class="moveSelected" disabled="true"
-                               value="Move Selected Albums to Google+" name="moveSelected" id="moveSelected"><br/>
-                        <input type="button" class="downloadSelected" value="Download All Albums" name="downloadAll"
-                               id="downloadAll"><br/>
-                        <input type="button" class="moveSelected" value="Move All Albums to Google+" name="moveAll"
-                               id="moveAll">
-                        <br/>
+                        <button title="Download Selected Albums(ZIP)" class="btn btn-default downloadSelected"  name="downloadSelected" id="downloadSelected" style="width: 100%;">
+                            <center>
+                                <img src="images/downloadico.png" style="width: 15%;"> Download Selected Albums
+                            </center>
+                        </button>
+
+
+
+
+                        <button title="Move Selected Albums" class="btn btn-default moveSelected"  name="moveSelected" id="moveSelected" style="width: 100%;">
+                            <center>
+                                <img src="images/gplus.png" style="width: 11%;"> Move Selected Albums
+                            </center>
+                        </button>
+
+
+
+
+                        <button title="Download All Albums(ZIP)" class="btn btn-default downloadSelected" name="downloadAll" id="downloadAll" style="width: 100%;">
+                            <center>
+                                <img src="images/downloadico.png" style="width: 15%; "> Download All Albums
+                            </center>
+                        </button>
+
+
+                        <button title="Move All Albums" class="btn btn-default moveSelected" name="moveAll" id="moveAll" style="width: 100%;">
+                            <center>
+                                <img src="images/gplus.png" style="width: 11%;"> Move All Albums
+                            </center>
+                        </button>
+
+
+
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -277,6 +301,13 @@ try {
 ?>
 <script type="text/javascript">
 $(document).ready(function () {
+
+    $('#downloadSelected').toggle(false);
+    $('#moveSelected').toggle(false);
+    $('#downloadAll').toggle(true);
+    $('#moveAll').toggle(true);
+
+
     var currentstate;
     var originaldata = document.getElementById('fullpagecontent').innerHTML;
 
@@ -448,8 +479,10 @@ $(document).ready(function () {
         if ($(this).is(':checked')) {
 
             parentnode.style.border = "1px solid #021a40";
-            $('#downloadSelected').prop('disabled', false);
-            $('#moveSelected').prop('disabled', false);
+            $('#downloadSelected').toggle(true);
+            $('#moveSelected').toggle(true);
+            $('#downloadAll').toggle(false);
+            $('#moveAll').toggle(false);
 
 
         }
@@ -463,14 +496,15 @@ $(document).ready(function () {
                 }
             });
             if (!k) {
-                $('#downloadSelected').prop('disabled', true);
-                $('#moveSelected').prop('disabled', true);
-
-
+                $('#downloadSelected').toggle(false);
+                $('#moveSelected').toggle(false);
+                $('#downloadAll').toggle(true);
+                $('#moveAll').toggle(true);
             }
         }
     });
     $('.downloadSelected').click(function (e) {
+
         var albumids = new Array();
         var k = 0;
 
@@ -526,6 +560,10 @@ $(document).ready(function () {
     });
 
     $('.moveSelected').click(function (e) {
+
+
+
+
         if (picasastatus) {
             var albumids = new Array();
             var k = 0;
