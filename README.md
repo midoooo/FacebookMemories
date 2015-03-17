@@ -2,7 +2,7 @@
 FacebookMemories - is a small tool which lets you save your facebook memories for you to remember it offline. Downloading pictures from facebook can be tedious, and each and everyone has hundreds of pictures on facebook with no option to download all the pictures or move them to Picasa/Google+. FacebookMemories is a small utility to achive this task easily.
 
 <ul class="task-list">
-<li><h3>Contributor : <a href="http://github.com/aakashthakkar">@aakashthakkar</a> &lt;thakkaraakash@hotmail.com&gt;</h3></li>
+<li><h3>Contributor : <a href="http://github.com/aakashthakkar">@aakashthakkar</a> <h6>&lt;thakkaraakash@hotmail.com&gt;</h6></h3></li>
 <li><h3>About : </h3>FacebookMemories uses Facebook Oauth 2.0 authorization to login and allows the user to connect with his Picasa/Google+ account using Google's AuthSub authorization.</li>
 <li><h3>Features : </h3>
 <ol>
