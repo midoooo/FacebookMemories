@@ -14,7 +14,7 @@ class fbApiTest extends \PHPUnit_Framework_TestCase
 
 	function setUp(){
 		if($_SESSION['validatedLogin']){
-			$this->fbapi=new fbapiclass();	
+			$this->fbapi=new Fbapiclass();
 		}
 		else{
 			echo "No session token created/Session token failed authentication. Read the instructions on the top of the page\n";
@@ -25,7 +25,7 @@ class fbApiTest extends \PHPUnit_Framework_TestCase
 
 	function testClassExistence()
 	{
-		$this->assertTrue(class_exists('fbapiclass'));
+		$this->assertTrue(class_exists('Fbapiclass'));
 	}
 	function testMethodsExistence(){
 		$this->assertTrue(method_exists($this->fbapi, 'getFromFb'));
@@ -64,6 +64,7 @@ class fbApiTest extends \PHPUnit_Framework_TestCase
 		$albumid='2183002210357';
 		$expectedResult=[["https://scontent.xx.fbcdn.net/hphotos-xpa1/t31.0-8/s2048x2048/1956766_10203717777720713_4053020401764178208_o.jpg","DA-IICT Convocation 2015"],["https://fbcdn-sphotos-d-a.akamaihd.net/hphotos-ak-xfa1/v/t1.0-9/183710_3751846110474_685948330_n.jpg?oh=4b5234755b1fe824dc4ae94a9578062a&oe=557FE758&__gda__=1434619280_a1adbd01dc1849318885bdbe12c511ea",null]];
 		$this->assertEquals($this->fbapi->getImageAndNameListFromAlbumId($albumid),$expectedResult);
+
 
 		//test 2 album id=1174351274714
 		$albumid='1174351274714';

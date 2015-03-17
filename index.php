@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 'On');
+/*error_reporting(E_ALL);
+ini_set('display_errors', 'On');*/
 
 /* INCLUSION OF LIBRARY FILEs*/
 
@@ -36,9 +36,8 @@ use Facebook\FacebookHttpable;
 use Facebook\FacebookCurlHttpClient;
 use Facebook\FacebookCurl;
 
-//1.Stat Session
+
 session_start();
-session_regenerate_id(true);
 $params = array(
     'scope' => 'email','public_profile','user_photos','user_about_me','user_birthday'
 );
@@ -63,44 +62,49 @@ if (isset($sess)) {
     exit();
 }
 
-?>
 
+
+?>
 <html>
 <head>
-    <title>Login</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, height=device-height">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
-    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.2/themes/smoothness/jquery-ui.css">
+
+
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>
+
+
+    <script type="text/javascript">
+        if (window.location.hash && window.location.hash == '#_=_') {
+            window.location.hash = '';
+            history.pushState('', document.title, window.location.pathname); // nice and clean
+            e.preventDefault();
+        }
+    </script>
     <script
         type="text/javascript"
         src="lib/vegas/jquery.vegas.js">
     </script>
-    <link rel="stylesheet" type="text/css" href="lib/vegas/jquery.vegas.min.css">
-    <script type="text/javascript" src="lib/vegas/jquery.vegas.min.js"></script>
-    <style>
-        a, a:hover, a:active, a:visited { color: white; }
-        .vertical-center {
-            left: 0;
-            line-height: 200px;
-            margin: auto;
-            margin-top: -100px;
-            position: absolute;
-            top: 48%;
-            width: 100%;
-        }
-        .vertical-center-below{
-            left: 0;
-            line-height: 200px;
-            margin: auto;
-            margin-top: -100px;
-            position: absolute;
-            top: 53%;
-            width: 100%;
-        }
 
+    <title>Login</title>
+
+
+    <style type="text/css">
+        .page-header {
+            margin-top: 0;
+        }
     </style>
+
     <script>
+
         $.vegas('slideshow', {
             backgrounds:[
                 { src:'images/5.png', fade:5000, valign:'5%' },
@@ -117,16 +121,81 @@ if (isset($sess)) {
 </head>
 <body>
 
-<div class="row vertical-center">
-    <font color="white" face="Verdana" size="10"><center>facebook<b>memories</b></center></font>
+<nav class="navbar navbar-inverse vcenter" role="navigation">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-1"></div>
+            <div class="col-md-2" align="right">
+                <a class="navbar-brand inactiveLink"><font color="white" face="Verdana" size="5">facebook<b>memories</b></font></a>
+            </div>
+            <div class="col-md-8" align="right">
+
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</nav>
+<br><br>
+<div class="container" align="center">
+
+    <div class="col-md-2">
+    </div>
+
+
+
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <center>
+            <div class="panel-body">
+                
+                
+
+                <div class="panel panel-default">
+                    <div class="panel-body">
+
+                        <div class="page-header">
+                            <div align="left"><font size="1" color="grey">Welcome to,</font></div>
+                            <div><img src="images/memories.png" style="width:100%">
+
+                            <br><font color="grey" face="Verdana" size="3">Where memories can be saved!</font></div>
+                        </div>
+                        <b>facebookMemories</b> is a small tool which lets you save your facebook memories for you to remember it offline. Downloading pictures from facebook can be tedious, and each and everyone has hundreds of pictures on facebook with no option to download all the pictures or move them to Picasa/Google+. Hence what facebookMemories provides is :<br><br>
+                        
+                        <b>Download All Facebook albums<br>
+                        Download selected Facebook albums<br>
+                        Transfer All Facebook albums to Google+/Picasa<br>
+                        Transfer Selected Facebook albums to Google+/Picasa<br></b>
+                        <br><br>Not a member yet? Sign in with facebook now!
+                        <br><br>
+                        <a href= <?php 
+                        if (!isset($sess)) {
+                            echo $helper->getLoginUrl($params);
+                        }
+
+                        ?>><input type="image" src="images/facebook.png" height="40px"/></a>
+                        
+                    </div>
+                </div>
+
+
+                <p>
+                    
+                </p>
+
+
+
+                
+            </div>
+        </center>
+
+        </div>
+    </div>
+
+
+    <div class="col-md-2">
+    </div>
+    
 </div>
 
-<div class="row vertical-center-below">
-    <?php
-    if (!isset($sess)) {
-        echo '<center><a href='.$helper->getLoginUrl($params).'><U><I>Login with facebook</I></U></a></center></center>';
-    }
-    ?>
-</div>
+
 </body>
 </html>

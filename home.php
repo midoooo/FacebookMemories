@@ -34,7 +34,7 @@ use Facebook\FacebookHttpable;
 use Facebook\FacebookCurlHttpClient;
 use Facebook\FacebookCurl;
 session_start();
-define('downloadDir', 'DownloadFiles');
+define('DOWNLOADDIR', 'DownloadFiles');
 
 
 ?>
@@ -144,7 +144,6 @@ try{
     $graphObject=getFromFB('/me/albums?fields=id,name,cover_photo');
     $data=$graphObject->getProperty('data');
     $arr=$data->asArray();
-//echo "<br/>";
     foreach ($arr as $row) {
         // echo $row->id . "<br/>"; //prints id
         // echo $row->name . "<br/>"; //prints album name
@@ -154,7 +153,9 @@ try{
         //echo "</br></br>";
     }
 
-}catch(Exception $e){;}
+} catch(Exception $e){
+    ;
+}
 
 
 ?>
@@ -189,8 +190,12 @@ try{
                                 <div class="panel-heading">About me</div>
                                 <div class="panel-body">
                                     <font color="#d3d3d3">Name</font><br><?php echo $name;?><br/>
-                                    <font color="#d3d3d3">Bio</font><br>
-                                    <?php echo $user_bio;?>
+
+                                    <?php
+                                    if ($user_bio!=null) {
+                                        echo "<font color=\"#d3d3d3\">Bio</font><br>".$user_bio;
+                                    }
+                                    ?>
                                 </div>
                             </div>
                             <div class="panel panel-default">
@@ -231,10 +236,6 @@ foreach ($arr as $row) {
         echo "<div id=\"thumbnaildiv{$row->id}\" name=\"{$row->id}\" class=\"albumthumbnail\" style=\" height: 200px; background-image: url({$graphObject->getProperty('source')}); background-size: cover; background-repeat: no-repeat; background-position: 50% 50%;\"></div>";
 
 
-
-        //echo "<img alt=\"View album\"  title=\"View album\" class=\"albumthumbnail\" name=\"{$row->id}\" data-src=\"holder.js/300x300\" alt=\"100%x200\" src=\"{$graphObject->getProperty('source')}\" data-holder-rendered=\"true\"\">";
-
-
         echo "<input type=\"checkbox\" class=\"selectCheckBox\" name=\"{$row->id}\"> Select<br/>";
         echo "<b><label class=\"albumname\" id=\"name{$row->id}\">".$row->name."</label></b>" ?>
         <br/>
@@ -248,9 +249,11 @@ foreach ($arr as $row) {
             <img src="images/gplus.png" height="20%" width="30%"></button>
 
         <?php
-    echo "</div>";
-        echo "</div>";
-    }catch(Exception $e){;}
+            echo "</div>";
+            echo "</div>";
+    }catch(Exception $e){
+        ;
+    }
 }
 ?>
                             </center>
@@ -434,9 +437,7 @@ foreach ($arr as $row) {
                     }
                 ]
             });
-            $('#profilepic').click(function(e) {
-                alert("You just clicked your Profile pic");
-            });
+
             $('.selectCheckBox').click(function(e){
                 var node=$(this).get(0);
                 var parentnode=node.parentNode;
@@ -499,7 +500,7 @@ foreach ($arr as $row) {
                     }).done(function(data){
                         if(data==1){
                             $( '#dialogue' ).dialog('close');
-                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                             $( '#dialogue' ).dialog('open');
 
                         }
@@ -510,7 +511,7 @@ foreach ($arr as $row) {
                         }
                         else{
                             $( '#dialogue' ).dialog('close');
-                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                            document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
                             $( '#dialogue' ).dialog('open');
                         }
 
@@ -590,7 +591,7 @@ foreach ($arr as $row) {
                 }).done(function(data){
                     if(data==1){
                         $( '#dialogue' ).dialog('close');
-                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                         $( '#dialogue' ).dialog('open');
                     }
                     else if(data==0 || data==null){
@@ -600,7 +601,7 @@ foreach ($arr as $row) {
                     }
                     else{
                         $( '#dialogue' ).dialog('close');
-                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo downloadDir."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
+                        document.getElementById('dialogue').innerHTML="Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>"+data+".zip\">Click here to download!</a>"
                         $( '#dialogue' ).dialog('open');
                     }
                 });
