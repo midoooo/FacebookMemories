@@ -5,8 +5,8 @@
  * Date: 02/02/15
  * Time: 10:17 AM
  */
-/*error_reporting(E_ALL);
-ini_set('display_errors', 1);*/
+//error_reporting(E_ALL);
+//ini_set('display_errors', 1);
 require_once 'fbcredentials.php';
 require_once 'lib/Facebook/FacebookSession.php';
 require_once 'lib/Facebook/FacebookRequest.php';
@@ -175,7 +175,7 @@ class Fbapiclass
             $i = 0;
             foreach ($imagelist as $img) {
                 $file = basename($img, ".jpg");
-                copy($img, DOWNLOADDIR . "/" . $albumid . "/" . $albumid . $i . ".jpg");
+                copy($img, DOWNLOADDIR . "/" . $albumid . "/" . "image-" . ($i+1) . ".jpg");
                 $i++;
             }
             return 1;
@@ -201,22 +201,25 @@ class Fbapiclass
                 $dirname = $dirname . $counter;
             }
             mkdir($dirname);
-            foreach ($albumids as $album) {
+            $count=1;
 
+            foreach ($albumids as $album) {
                 $imagelist = $this->getImageListFromAlbumId($album);
 
                 if (is_array($imagelist)) {
-                    system("rm -rf " . escapeshellarg($dirname . "/" . $album));
-                    mkdir($dirname . "/" . $album);
+                    system("rm -rf " . escapeshellarg($dirname . "/" . "album-".$count));
+                    mkdir($dirname . "/" . "album-".$count);
                     $i = 0;
                     foreach ($imagelist as $img) {
                         $file = basename($img, ".jpg");
-                        copy($img, $dirname . "/" . $album . "/" . $album . $i . ".jpg");
+                        copy($img, $dirname . "/" . "album-".$count . "/" . "image-" . ($i+1) . ".jpg");
                         $i++;
                     }
+                    $count++;
                 } else {
                     throw new Exception("Invalid Request!");
                 }
+
             }
             if ($counter == 0) {
                 return $_SESSION['userid'];
@@ -232,7 +235,7 @@ class Fbapiclass
                 $val = $_SESSION['userid'] . $counter;
             }
             system("rm -rf " . escapeshellarg(DOWNLOADDIR . "/" . $val));
-            return "Invalid albumid";
+            echo $e->getMessage();
         }
 
 
