@@ -58,7 +58,7 @@ define('DOWNLOADDIR', 'DownloadFiles');
 
 
     <script type="text/javascript">
-        if (window.location.hash && window.location.hash == '#_=_') {
+        if (window.location.hash && window.location.hash == '#_=_' || window.location.hash == '#') {
             window.location.hash = '';
             history.pushState('', document.title, window.location.pathname); // nice and clean
             e.preventDefault();
@@ -76,6 +76,8 @@ define('DOWNLOADDIR', 'DownloadFiles');
     <title>Home</title>
 </head>
 <body>
+<div id="message"></div>
+
 
 <nav class="navbar navbar-inverse vcenter" role="navigation">
     <div class="container">
@@ -208,8 +210,6 @@ try {
                             </center>
                         </button>
 
-
-
                     </div>
                 </div>
                 <div class="panel panel-default">
@@ -254,17 +254,24 @@ try {
                         <?php
                         foreach ($arr as $row) {
                             try {
+
+
                                 $coverget = "/" . $row->cover_photo; //gets cover pic id
                                 $graphObject = getFromFB($coverget); //gets graph object from that cover pic
+                                $albumdetails=getFromFB("/".$row->id);
                                 echo "<div class=\"col-sm-6 col-md-4\">";
+
                                 echo "<div class=\"thumbnail\">";
 
                                 echo "<div id=\"thumbnaildiv{$row->id}\" name=\"{$row->id}\" class=\"albumthumbnail\" style=\" height: 200px; background-image: url({$graphObject->getProperty('source')}); background-size: cover; background-repeat: no-repeat; background-position: 50% 50%;\"></div>";
 
 
                                 echo "<input type=\"checkbox\" class=\"selectCheckBox\" name=\"{$row->id}\"> Select<br/>";
-                                echo "<b><label class=\"albumname\" id=\"name{$row->id}\">" . $row->name . "</label></b>" ?>
+                                echo "<b><label class=\"albumname\" id=\"name{$row->id}\">" . $row->name . "</label></b></br>";
+                                echo "<b><label>({$albumdetails->getProperty('count')} Images)</label></b>";
+                                ?>
                                 <br/>
+
                                 <button title="Download Album(ZIP)" class="btn btn-default albumdownload"
                                         style="width: 35%;height: 25%"
                                         id="<?php echo $row->id ?>">
@@ -402,6 +409,7 @@ $(document).ready(function () {
             }).done(function (data) {
                 if (data == 1) {
                     $('#dialogue').dialog('close');
+                    $('#downloadDialogue').dialog('close');
                     document.getElementById('dialogue').innerHTML = "Album Uploaded to Google+/Picasa.";
                     $('#dialogue').dialog('open');
                     originalthis.prop('disabled', false);
@@ -409,6 +417,7 @@ $(document).ready(function () {
                 }
                 else {
                     $('#dialogue').dialog('close');
+                    $('#downloadDialogue').dialog('close');
                     document.getElementById('dialogue').innerHTML = "Something went wrong! We are trying to fix it."
                     $('#dialogue').dialog('open');
                     originalthis.prop('disabled', false);
@@ -420,6 +429,7 @@ $(document).ready(function () {
         else {
 
             $('#dialogue').dialog('close');
+            $('#downloadDialogue').dialog('close');
             document.getElementById('dialogue').innerHTML = "Connect to Google+/Picasa first. " + document.getElementById('picasaConnectivity').innerHTML;
             $('#dialogue').dialog('open');
         }
@@ -461,6 +471,22 @@ $(document).ready(function () {
 
 
     $('#dialogue').dialog({
+
+        autoOpen: false,
+        title: 'Status',
+        open: function(event, ui){
+            document.getElementById('message').innerHTML="";
+        },
+        buttons: [
+            {
+                text: "Hide",
+                click: function () {
+                    $(this).dialog("close");
+                }
+            }
+        ]
+    });
+    $('#downloadDialogue').dialog({
         autoOpen: false,
         title: 'Status',
         buttons: [
@@ -468,6 +494,7 @@ $(document).ready(function () {
                 text: "Hide",
                 click: function () {
                     $(this).dialog("close");
+                    document.getElementById('message').innerHTML="\<div class=\"alert alert-info\" id=\"headernote\" style=\"margin-bottom: 0px;\"> <a href=\"#\" class=\"close\" data-dismiss=\"alert\">&times;</a> <strong>Note!</strong> Your request is being processed in the background and will be ready in few moments... </div>";
                 }
             }
         ]
@@ -525,8 +552,9 @@ $(document).ready(function () {
 
         if (k > 0) {
             $('#dialogue').dialog('close');
-            document.getElementById('dialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>"
-            $('#dialogue').dialog('open');
+            $('#downloadDialogue').dialog('close');
+            document.getElementById('downloadDialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>"
+            $('#downloadDialogue').dialog('open');
             $.ajax({
                 type: "POST",
                 url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
@@ -538,17 +566,20 @@ $(document).ready(function () {
             }).done(function (data) {
                 if (data == 1) {
                     $('#dialogue').dialog('close');
+                    $('#downloadDialogue').dialog('close');
                     document.getElementById('dialogue').innerHTML = "Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                     $('#dialogue').dialog('open');
 
                 }
                 else if (data == 0 || data == null) {
                     $('#dialogue').dialog('close');
+                    $('#downloadDialogue').dialog('close');
                     document.getElementById('dialogue').innerHTML = "Something went wrong! We are trying to fix it."
                     $('#dialogue').dialog('open');
                 }
                 else {
                     $('#dialogue').dialog('close');
+                    $('#downloadDialogue').dialog('close');
                     document.getElementById('dialogue').innerHTML = "Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>" + data + ".zip\">Click here to download!</a>"
                     $('#dialogue').dialog('open');
                 }
@@ -584,8 +615,9 @@ $(document).ready(function () {
             if (k > 0) {
 
                 $('#dialogue').dialog('close');
-                document.getElementById('dialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, Uploading to Google+/Picasa.!</p>"
-                $('#dialogue').dialog('open');
+                $('#downloadDialogue').dialog('close');
+                document.getElementById('downloadDialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, Uploading to Google+/Picasa.!</p>"
+                $('#downloadDialogue').dialog('open');
 
                 $.ajax({
                     type: "POST",
@@ -598,11 +630,13 @@ $(document).ready(function () {
                 }).done(function (data) {
                     if (data == 1) {
                         $('#dialogue').dialog('close');
+                        $('#downloadDialogue').dialog('close');
                         document.getElementById('dialogue').innerHTML = "Album(s) Uploaded to Google+/Picasa.";
                         $('#dialogue').dialog('open');
                     }
                     else {
                         $('#dialogue').dialog('close');
+                        $('#downloadDialogue').dialog('close');
                         document.getElementById('dialogue').innerHTML = "Something went wrong! We are trying to fix it."
                         $('#dialogue').dialog('open');
                     }
@@ -611,6 +645,7 @@ $(document).ready(function () {
         }
         else {
             $('#dialogue').dialog('close');
+            $('#downloadDialogue').dialog('close');
             document.getElementById('dialogue').innerHTML = "Connect to Google+/Picasa first. " + document.getElementById('picasaConnectivity').innerHTML;
             $('#dialogue').dialog('open');
         }
@@ -620,12 +655,17 @@ $(document).ready(function () {
 
     $('.albumdownload').click(function (e) {
 
-        document.getElementById('dialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>";
-        $('#dialogue').dialog('open');
+        var albumids=new Array();
+        albumids[0]=$(this).attr('id');
+        $('#dialogue').dialog('close');
+        $('#downloadDialogue').dialog('close');
+        document.getElementById('downloadDialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Please wait, creating ZIP file!</p>";
+        $('#downloadDialogue').dialog('open');
+
         $.ajax({
             type: "POST",
             url: "http://rtcamp-thakkaraakash.rhcloud.com/fbapi.php",
-            data: {functype: 'downloadImagesFromAlbum', funcval: $(this).attr('id')},
+            data: {functype: 'downloadMultipleAlbums', funcval: albumids },
             dataType: "JSON",
             success: function (response, status, jqXHR) {
                 console.log(jqXHR.responseText);
@@ -633,16 +673,19 @@ $(document).ready(function () {
         }).done(function (data) {
             if (data == 1) {
                 $('#dialogue').dialog('close');
+                $('#downloadDialogue').dialog('close');
                 document.getElementById('dialogue').innerHTML = "Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>.zip\">Click here to download!</a>"
                 $('#dialogue').dialog('open');
             }
             else if (data == 0 || data == null) {
                 $('#dialogue').dialog('close');
+                $('#downloadDialogue').dialog('close');
                 document.getElementById('dialogue').innerHTML = "Something went wrong! We are trying to fix it."
                 $('#dialogue').dialog('open');
             }
             else {
                 $('#dialogue').dialog('close');
+                $('#downloadDialogue').dialog('close');
                 document.getElementById('dialogue').innerHTML = "Here is your download <a href=\"<?php echo DOWNLOADDIR."/".$_SESSION['userid']?>" + data + ".zip\">Click here to download!</a>"
                 $('#dialogue').dialog('open');
             }
@@ -650,6 +693,7 @@ $(document).ready(function () {
     });
     $('.albumthumbnail').click(function (e) {
         $('#dialogue').dialog('close');
+        $('#downloadDialogue').dialog('close');
         document.getElementById('dialogue').innerHTML = "\<p><img src=\"images/loading32x32.gif\"\> Opening Album....."
         $('#dialogue').dialog('open');
 
@@ -679,11 +723,11 @@ $(document).ready(function () {
                 }
             }
             $('#dialogue').dialog('close');
+            $('#downloadDialogue').dialog('close');
             document.getElementById('check').click();
 
         });
     });
-
 });
 </script>
 
@@ -691,6 +735,10 @@ $(document).ready(function () {
     <p><img src="images/loading32x32.gif">
 
         Please wait, creating ZIP file!</p>
+</div>
+
+<div id="downloadDialogue" title="test dialog" hidden="true">
+
 </div>
 
 
